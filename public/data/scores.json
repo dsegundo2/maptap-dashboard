@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-06-29T23:12:55.592Z",
+  "date": "2026-06-29",
+  "globalPlayers": 257606,
+  "players": [
+    {
+      "id": "MT6lKKGOZraR9jgHBgZTuucxPiE3",
+      "username": "Eo2",
+      "displayName": "Eo2",
+      "score": 932,
+      "playedToday": true,
+      "globalRank": 32130,
+      "globalPercentile": 87,
+      "history": [
+        {
+          "date": "2026-06-21",
+          "score": 885
+        },
+        {
+          "date": "2026-06-22",
+          "score": 964
+        },
+        {
+          "date": "2026-06-23",
+          "score": 913
+        },
+        {
+          "date": "2026-06-24",
+          "score": 982
+        },
+        {
+          "date": "2026-06-25",
+          "score": 935
+        },
+        {
+          "date": "2026-06-26",
+          "score": 887
+        },
+        {
+          "date": "2026-06-27",
+          "score": 989
+        },
+        {
+          "date": "2026-06-28",
+          "score": 919
+        },
+        {
+          "date": "2026-06-29",
+          "score": 932
+        }
+      ]
+    }
+  ]
+}
