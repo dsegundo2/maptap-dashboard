@@ -25,7 +25,18 @@ for (const [index, user] of users.entries()) {
   });
   const profile = payload.result?.user;
   if (!payload.result?.success || !profile || profile.leaderboardVisible === false) {
-    console.warn(`Skipping unavailable public profile: ${user.username}`);
+    console.warn(`Public profile unavailable; keeping configured friend visible: ${user.username}`);
+    players.push({
+      id: `configured:${user.username}`,
+      username: user.username,
+      displayName: user.displayName || user.username,
+      score: null,
+      playedToday: false,
+      globalRank: null,
+      globalPercentile: null,
+      history: []
+    });
+    if (index < users.length - 1) await new Promise((resolve) => setTimeout(resolve, 650));
     continue;
   }
   const history = compactHistory(profile.gameHistory);

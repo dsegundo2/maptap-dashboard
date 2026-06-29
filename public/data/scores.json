@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-06-29T23:12:55.592Z",
+  "generatedAt": "2026-06-29T23:25:20.230Z",
   "date": "2026-06-29",
-  "globalPlayers": 257606,
+  "globalPlayers": 259070,
   "players": [
     {
       "id": "MT6lKKGOZraR9jgHBgZTuucxPiE3",
@@ -9,7 +9,7 @@
       "displayName": "Eo2",
       "score": 932,
       "playedToday": true,
-      "globalRank": 32130,
+      "globalRank": 32313,
       "globalPercentile": 87,
       "history": [
         {
@@ -49,6 +49,16 @@
           "score": 932
         }
       ]
+    },
+    {
+      "id": "configured:dsegundo2",
+      "username": "dsegundo2",
+      "displayName": "Diego",
+      "score": null,
+      "playedToday": false,
+      "globalRank": null,
+      "globalPercentile": null,
+      "history": []
     }
   ]
 }

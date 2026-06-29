@@ -9,6 +9,8 @@ test.beforeEach(async ({ page }) => {
 
 test('loads the fallback leaderboard and navigates through player details', async ({ page }) => {
   await expect(page.getByText('Eo2', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Diego', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View Diego details' })).toContainText('Not yet');
   await page.getByRole('button', { name: /View Eo2 details/i }).click();
   await expect(page.getByRole('heading', { name: 'Eo2' })).toBeVisible();
   await expect(page.getByText('Score trail')).toBeVisible();

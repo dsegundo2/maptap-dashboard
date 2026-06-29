@@ -33,11 +33,28 @@ export async function fetchLiveDashboard() {
   const leaderboardPromise = jsonFetch(leaderboardUrl).then((value) => value.leaderboard);
   const profiles = [];
   for (const user of users) {
-    profiles.push(await profileFor(user));
+    try {
+      profiles.push(await profileFor(user));
+    } catch (error) {
+      console.warn(`Public MapTap profile unavailable for ${user.username}; keeping the configured friend visible.`, error);
+      profiles.push({ config: user, profile: null });
+    }
     if (users.length > 1) await new Promise((resolve) => setTimeout(resolve, 650));
   }
   const leaderboard = await leaderboardPromise;
   const players = profiles.map(({ config: user, profile }) => {
+    if (!profile) {
+      return {
+        id: `configured:${user.username}`,
+        username: user.username,
+        displayName: user.displayName || user.username,
+        score: null,
+        playedToday: false,
+        globalRank: null,
+        globalPercentile: null,
+        history: []
+      };
+    }
     const history = compactHistory(profile.gameHistory);
     const score = history.find((game) => game.date === today)?.score ?? null;
     const exact = leaderboard.players?.find((entry) => entry.odyseedId === profile.userId);
