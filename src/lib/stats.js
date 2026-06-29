@@ -13,6 +13,38 @@ export function scoreForDate(player, date) {
   return player.history?.find((game) => game.date === date)?.score ?? null;
 }
 
+export function addDays(date, amount) {
+  const value = new Date(`${date}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + amount);
+  return value.toISOString().slice(0, 10);
+}
+
+export function leaderboardDateRange(today, hardMinimum = '2026-06-01', days = 30) {
+  const rollingMinimum = addDays(today, -(days - 1));
+  const minimum = rollingMinimum > hardMinimum ? rollingMinimum : hardMinimum;
+  const dates = [];
+  for (let date = minimum; date <= today; date = addDays(date, 1)) dates.push(date);
+  return { minimum, maximum: today, dates };
+}
+
+export function dashboardForDate(data, date, standings = {}) {
+  const players = data.players.map((player) => {
+    const score = scoreForDate(player, date);
+    const standing = date === data.date
+      ? { rank: player.globalRank, percentile: player.globalPercentile }
+      : standings[player.id] || { rank: null, percentile: null };
+    return {
+      ...player,
+      score,
+      playedToday: Number.isFinite(score),
+      globalRank: standing.rank,
+      globalPercentile: standing.percentile
+    };
+  });
+  players.sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || a.displayName.localeCompare(b.displayName));
+  return { ...data, date, players };
+}
+
 export function globalStanding(score, leaderboard = {}) {
   if (!Number.isFinite(score)) return { rank: null, percentile: null };
   const buckets = leaderboard.allScoreBuckets || {};

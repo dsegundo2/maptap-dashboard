@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compactHistory, enrichDashboard, globalStanding } from '../src/lib/stats.js';
+import { compactHistory, dashboardForDate, enrichDashboard, globalStanding, leaderboardDateRange } from '../src/lib/stats.js';
 
 describe('globalStanding', () => {
   it('estimates rank and percentile from public buckets', () => {
@@ -32,5 +32,22 @@ describe('enrichDashboard', () => {
     expect(result.players[0].id).toBe('a');
     expect(result.players[0].summary).toMatchObject({ wins: 2, longestWinStreak: 2, currentWinStreak: 2, average: 923, gamesPlayed: 3, daysMissed: 0 });
     expect(result.players[1].summary.daysMissed).toBe(1);
+  });
+});
+
+describe('historical leaderboard dates', () => {
+  it('limits navigation to June 1 and the latest 30 days', () => {
+    expect(leaderboardDateRange('2026-06-29')).toMatchObject({ minimum: '2026-06-01', maximum: '2026-06-29' });
+    expect(leaderboardDateRange('2026-07-15')).toMatchObject({ minimum: '2026-06-16', maximum: '2026-07-15' });
+  });
+
+  it('handles empty and partially completed days', () => {
+    const data = { date: '2026-06-29', players: [
+      { id: 'a', displayName: 'A', history: [{ date: '2026-06-10', score: 900 }] },
+      { id: 'b', displayName: 'B', history: [] }
+    ] };
+    const partial = dashboardForDate(data, '2026-06-10');
+    expect(partial.players.map((player) => [player.id, player.score, player.playedToday])).toEqual([['a', 900, true], ['b', null, false]]);
+    expect(dashboardForDate(data, '2026-06-09').players.every((player) => !player.playedToday)).toBe(true);
   });
 });

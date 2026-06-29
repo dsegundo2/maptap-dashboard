@@ -1,7 +1,8 @@
 import './styles.css';
-import { fetchLiveDashboard, fetchStaticDashboard, readCache, writeCache } from './lib/data.js';
+import { fetchLiveDashboard, fetchStandingsForDate, fetchStaticDashboard, readCache, writeCache } from './lib/data.js';
+import { addDays, dashboardForDate, leaderboardDateRange } from './lib/stats.js';
 import { icon, logo } from './ui/icons.js';
-import { formatUpdated } from './ui/format.js';
+import { formatDate, formatUpdated } from './ui/format.js';
 import { aboutView, playersView, todayView, trendsView } from './ui/views.js';
 
 const app = document.querySelector('#app');
@@ -10,6 +11,10 @@ const state = {
   view: 'today',
   selectedPlayer: null,
   spotlightPlayer: null,
+  selectedDate: null,
+  calendarOpen: false,
+  standingsByDate: {},
+  standingsLoading: false,
   loading: true,
   refreshing: false,
   source: 'snapshot',
@@ -35,12 +40,22 @@ function shell(content = '') {
 }
 
 function render() {
+  document.body.classList.toggle('calendar-open', state.calendarOpen);
   if (!state.data) {
     app.innerHTML = shell();
     return;
   }
+  const dateRange = leaderboardDateRange(state.data.date);
+  if (!state.selectedDate || state.selectedDate < dateRange.minimum || state.selectedDate > dateRange.maximum) state.selectedDate = dateRange.maximum;
+  const selectedData = dashboardForDate(state.data, state.selectedDate, state.standingsByDate[state.selectedDate]);
   const views = {
-    today: () => todayView(state.data, state.spotlightPlayer),
+    today: () => todayView(selectedData, {
+      spotlightId: state.spotlightPlayer,
+      minimumDate: dateRange.minimum,
+      maximumDate: dateRange.maximum,
+      calendarOpen: state.calendarOpen,
+      standingsLoading: state.standingsLoading
+    }),
     players: () => playersView(state.data, state.selectedPlayer),
     trends: () => trendsView(state.data),
     about: () => aboutView(state.data)
@@ -83,25 +98,47 @@ async function refresh({ quiet = false } = {}) {
   }
 }
 
-async function shareToday() {
+async function shareSelectedDate() {
   setMessage('Refreshing before sharing…');
   const data = await refresh({ quiet: true });
-  const leader = data.players.find((player) => player.playedToday);
+  const selectedData = dashboardForDate(data, state.selectedDate, state.standingsByDate[state.selectedDate]);
+  const leader = selectedData.players.find((player) => player.playedToday);
+  const isToday = state.selectedDate === data.date;
+  const dateLabel = formatDate(state.selectedDate);
   const text = leader
-    ? `Today’s MapTap leader is ${leader.displayName} with ${leader.score.toLocaleString()} points. See the full friend leaderboard:`
-    : 'No one in our MapTap group has played yet today. The trail is wide open:';
+    ? `${isToday ? 'Today’s' : `${dateLabel}’s`} MapTap leader is ${leader.displayName} with ${leader.score.toLocaleString()} points. See the full friend leaderboard:`
+    : `No one in our MapTap group recorded a score for ${isToday ? 'today' : dateLabel}:`;
   const url = new URL(window.location.href);
+  url.searchParams.set('date', state.selectedDate);
   url.searchParams.set('shared', Date.now().toString());
   try {
     if (navigator.share) {
-      await navigator.share({ title: 'MapTap Dashboard — Today’s Leaderboard', text, url: url.toString() });
-      setMessage('Shared with today’s fresh scores.');
+      await navigator.share({ title: `MapTap Dashboard — ${dateLabel}`, text, url: url.toString() });
+      setMessage('Shared with fresh scores.');
     } else {
       await navigator.clipboard.writeText(`${text} ${url}`);
       setMessage('Fresh leaderboard link copied.');
     }
   } catch (error) {
     if (error.name !== 'AbortError') setMessage('Sharing was unavailable. Try again.');
+  }
+}
+
+async function selectDate(date) {
+  if (!state.data) return;
+  const range = leaderboardDateRange(state.data.date);
+  if (date < range.minimum || date > range.maximum) return;
+  state.selectedDate = date;
+  state.calendarOpen = false;
+  state.standingsLoading = date !== state.data.date && !state.standingsByDate[date];
+  render();
+  if (!state.standingsLoading) return;
+  const selected = dashboardForDate(state.data, date);
+  const standings = await fetchStandingsForDate(date, selected.players);
+  state.standingsByDate[date] = standings;
+  if (state.selectedDate === date) {
+    state.standingsLoading = false;
+    render();
   }
 }
 
@@ -128,11 +165,33 @@ app.addEventListener('click', (event) => {
     render();
     return;
   }
+  const dateButton = event.target.closest('[data-date]');
+  if (dateButton) {
+    selectDate(dateButton.dataset.date);
+    return;
+  }
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'refresh') refresh();
-  if (action === 'share') shareToday();
+  if (action === 'share') shareSelectedDate();
+  if (action === 'previous-day') selectDate(addDays(state.selectedDate, -1));
+  if (action === 'next-day') selectDate(addDays(state.selectedDate, 1));
+  if (action === 'open-calendar') {
+    state.calendarOpen = true;
+    render();
+  }
+  if (action === 'close-calendar') {
+    state.calendarOpen = false;
+    render();
+  }
   if (action === 'back-players') {
     state.selectedPlayer = null;
+    render();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && state.calendarOpen) {
+    state.calendarOpen = false;
     render();
   }
 });
@@ -150,6 +209,11 @@ async function init() {
       console.warn('Static snapshot unavailable.', error);
     }
   }
+  render();
+  const requestedDate = new URLSearchParams(window.location.search).get('date');
+  const range = leaderboardDateRange(state.data?.date || '2026-06-01');
+  if (requestedDate && requestedDate >= range.minimum && requestedDate <= range.maximum) state.selectedDate = requestedDate;
+  else state.selectedDate = state.data?.date || null;
   render();
   await refresh({ quiet: true });
 }

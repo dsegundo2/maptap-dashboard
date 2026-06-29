@@ -6,6 +6,7 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
 
 - **Small group first:** optimized for fewer than 10 friends. Everyone stays visible; there is no search, pagination, account, or “my stats” state.
 - **Named summaries:** 30-day stats always belong to an explicitly selected friend (for example, “Eo2’s last 30 days”).
+- **Historical leaderboards:** previous/next arrows and an accessible calendar cover the rolling 30-day window, never earlier than June 1, 2026, including partial and empty days.
 - **Fresh in the browser:** each page load revalidates public profiles against MapTap. A manual refresh bypasses the daily leaderboard cache URL and Share refreshes before composing its message.
 - **Resilient on static hosting:** `public/data/scores.json` is the most recent generated fallback. A failed live request never blanks the dashboard.
 - **Honest standings:** exact rank is used when MapTap publishes the player in its top list; otherwise rank and percentile use MapTap’s own public histogram method and are treated as estimates.

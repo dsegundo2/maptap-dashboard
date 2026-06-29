@@ -2,7 +2,7 @@ import { compactHistory, dateKey, enrichDashboard, globalStanding } from './stat
 
 const PROFILE_ENDPOINT = 'https://us-central1-jjexperiment-12af6.cloudfunctions.net/getPublicProfile';
 const LEADERBOARD_ROOT = 'https://firebasestorage.googleapis.com/v0/b/jjexperiment-12af6.appspot.com/o/data%2Fleaderboards%2F';
-const CACHE_KEY = 'maptap-dashboard-cache-v1';
+const CACHE_KEY = 'maptap-dashboard-cache-v2';
 const CACHE_TTL = 5 * 60 * 1000;
 
 function asset(path) {
@@ -76,6 +76,23 @@ export async function fetchLiveDashboard() {
 export async function fetchStaticDashboard() {
   const [data, config] = await Promise.all([jsonFetch(asset('data/scores.json')), jsonFetch(asset('data/config.json'))]);
   return enrichDashboard(data, config.competitionWindowDays);
+}
+
+export async function fetchStandingsForDate(date, players) {
+  try {
+    const payload = await jsonFetch(`${LEADERBOARD_ROOT}daily-${date}.json?alt=media&v=${Date.now()}`);
+    const leaderboard = payload.leaderboard;
+    return Object.fromEntries(players.map((player) => {
+      if (!Number.isFinite(player.score)) return [player.id, { rank: null, percentile: null }];
+      const exact = leaderboard.players?.find((entry) => entry.odyseedId === player.id);
+      const standing = exact
+        ? { rank: exact.rank, percentile: ((leaderboard.totalPlayers - exact.rank) / leaderboard.totalPlayers) * 100 }
+        : globalStanding(player.score, leaderboard);
+      return [player.id, standing];
+    }));
+  } catch {
+    return {};
+  }
 }
 
 export function readCache() {

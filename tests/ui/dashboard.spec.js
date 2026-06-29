@@ -9,8 +9,8 @@ test.beforeEach(async ({ page }) => {
 
 test('loads the fallback leaderboard and navigates through player details', async ({ page }) => {
   await expect(page.getByText('Eo2', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Diego', { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole('button', { name: 'View Diego details' })).toContainText('Not yet');
+  await expect(page.getByText('Diego Tomas', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View Diego Tomas details' })).toContainText('Played');
   await page.getByRole('button', { name: /View Eo2 details/i }).click();
   await expect(page.getByRole('heading', { name: 'Eo2' })).toBeVisible();
   await expect(page.getByText('Score trail')).toBeVisible();
@@ -29,6 +29,45 @@ test('mobile leaderboard has no horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
+});
+
+test('navigates previous and next leaderboard days', async ({ page }) => {
+  await page.getByRole('button', { name: 'Previous day' }).click();
+  await expect(page.getByRole('heading', { name: 'Daily leaderboard' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText('Jun 28');
+  await expect(page.getByRole('button', { name: 'View Eo2 details' })).toContainText('Played');
+  await expect(page.getByRole('button', { name: 'View Eo2 details' })).not.toContainText('932');
+  await expect(page.getByRole('button', { name: 'View Diego Tomas details' })).toContainText('Played');
+  await page.getByRole('button', { name: 'Next day' }).click();
+  await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
+});
+
+test('calendar selects the June 1 lower bound with one completed score', async ({ page }) => {
+  await page.getByRole('button', { name: 'Choose leaderboard date' }).click();
+  await expect(page.getByRole('dialog', { name: 'Choose a day' })).toBeVisible();
+  await page.getByRole('button', { name: 'June 1, 2026' }).click();
+  await expect(page.getByRole('heading', { name: 'Diego Tomas', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View Diego Tomas details' })).toContainText('759');
+  await expect(page.getByRole('button', { name: 'View Eo2 details' })).toContainText('Not yet');
+  await expect(page.getByRole('button', { name: 'Previous day' })).toBeDisabled();
+});
+
+test('renders a clear empty state when no one has a score', async ({ page }) => {
+  const players = ['Eo2', 'Diego Tomas'].map((displayName, index) => ({
+    id: `empty-${index}`,
+    username: displayName,
+    displayName,
+    score: 900 - index,
+    playedToday: true,
+    globalRank: 31 + index,
+    globalPercentile: 90 - index,
+    history: [{ date: '2026-06-29', score: 900 - index }]
+  }));
+  await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-06-29', globalPlayers: 1000, players } }));
+  await page.goto('/?date=2026-06-01');
+  await expect(page.getByRole('heading', { name: 'No scores yet' })).toBeVisible();
+  await expect(page.getByText('No one in the group played.')).toBeVisible();
+  await expect(page.locator('.leader-row .played-state')).toHaveText(['Not yet', 'Not yet']);
 });
 
 test('keeps all nine friends directly visible without pagination', async ({ page }) => {
