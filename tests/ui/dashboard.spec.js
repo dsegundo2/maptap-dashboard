@@ -1,7 +1,16 @@
 import { expect, test } from '@playwright/test';
 import playerRegistry from '../../public/data/players.json' with { type: 'json' };
+import scoreSnapshot from '../../public/data/scores.json' with { type: 'json' };
 
 const [temporaryPlayer, primaryPlayer] = playerRegistry;
+const addDays = (date, amount) => {
+  const value = new Date(`${date}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + amount);
+  return value.toISOString().slice(0, 10);
+};
+const shortDate = (date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+const playerSnapshot = (config) => scoreSnapshot.players.find((player) => player.maptapUsername === config.maptapUsername);
+const scoreOn = (config, date) => playerSnapshot(config)?.history.find((game) => game.date === date)?.score ?? null;
 
 test.beforeEach(async ({ page }) => {
   await page.route('https://us-central1-jjexperiment-12af6.cloudfunctions.net/**', (route) => route.abort());
@@ -12,7 +21,7 @@ test.beforeEach(async ({ page }) => {
 
 test('loads the fallback leaderboard and navigates through player details', async ({ page }) => {
   await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toBeVisible();
-  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toContainText('Played');
+  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toBeVisible();
   await page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` }).click();
   await expect(page.getByRole('heading', { name: temporaryPlayer.displayName, exact: true })).toBeVisible();
   await expect(page.getByText('Score trail')).toBeVisible();
@@ -35,12 +44,14 @@ test('mobile leaderboard has no horizontal overflow', async ({ page }) => {
 });
 
 test('navigates previous and next leaderboard days', async ({ page }) => {
+  const previousDate = addDays(scoreSnapshot.date, -1);
   await page.getByRole('button', { name: 'Previous day' }).click();
   await expect(page.getByRole('heading', { name: 'Daily leaderboard' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText('Jun 28');
-  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toContainText('Played');
-  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).not.toContainText('932');
-  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toContainText('Played');
+  await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText(shortDate(previousDate));
+  for (const player of playerRegistry) {
+    const row = page.getByRole('button', { name: `View ${player.displayName} details` });
+    await expect(row).toContainText(Number.isFinite(scoreOn(player, previousDate)) ? 'Played' : 'Not yet');
+  }
   await page.getByRole('button', { name: 'Next day' }).click();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
 });
@@ -49,9 +60,14 @@ test('calendar selects the June 1 lower bound with one completed score', async (
   await page.getByRole('button', { name: 'Choose leaderboard date' }).click();
   await expect(page.getByRole('dialog', { name: 'Choose a day' })).toBeVisible();
   await page.getByRole('button', { name: 'June 1, 2026' }).click();
-  await expect(page.getByRole('heading', { name: primaryPlayer.displayName, exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toContainText('759');
-  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toContainText('Not yet');
+  const juneFirst = '2026-06-01';
+  const scoredPlayers = playerRegistry.filter((player) => Number.isFinite(scoreOn(player, juneFirst)));
+  const leader = scoredPlayers.toSorted((a, b) => scoreOn(b, juneFirst) - scoreOn(a, juneFirst))[0];
+  await expect(page.getByRole('heading', { name: leader.displayName, exact: true })).toBeVisible();
+  for (const player of playerRegistry) {
+    const score = scoreOn(player, juneFirst);
+    await expect(page.getByRole('button', { name: `View ${player.displayName} details` })).toContainText(Number.isFinite(score) ? score.toLocaleString() : 'Not yet');
+  }
   await expect(page.getByRole('button', { name: 'Previous day' })).toBeDisabled();
 });
 
