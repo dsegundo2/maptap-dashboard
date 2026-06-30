@@ -140,6 +140,26 @@ async function selectDate(date) {
   }
 }
 
+function showChartTooltip(point, event) {
+  const chart = point.closest('[data-chart]');
+  const tooltip = chart?.querySelector('[data-chart-tooltip]');
+  if (!chart || !tooltip) return;
+  tooltip.querySelector('[data-tooltip-date]').textContent = formatDate(point.dataset.date, { month: 'long' });
+  tooltip.querySelector('[data-tooltip-score]').textContent = `${Number(point.dataset.score).toLocaleString()} points`;
+  const chartBox = chart.getBoundingClientRect();
+  const pointBox = point.getBoundingClientRect();
+  const pointerX = event?.clientX ?? pointBox.left + pointBox.width / 2;
+  const pointerY = event?.clientY ?? pointBox.top;
+  tooltip.style.left = `${Math.min(chartBox.width - 52, Math.max(52, pointerX - chartBox.left))}px`;
+  tooltip.style.top = `${Math.max(8, pointerY - chartBox.top - 8)}px`;
+  tooltip.hidden = false;
+}
+
+function hideChartTooltip(point) {
+  const tooltip = point.closest('[data-chart]')?.querySelector('[data-chart-tooltip]');
+  if (tooltip) tooltip.hidden = true;
+}
+
 app.addEventListener('click', (event) => {
   const nav = event.target.closest('[data-nav]');
   if (nav) {
@@ -167,6 +187,7 @@ app.addEventListener('click', (event) => {
   if (action === 'share') shareSelectedDate();
   if (action === 'previous-day') selectDate(addDays(state.selectedDate, -1));
   if (action === 'next-day') selectDate(addDays(state.selectedDate, 1));
+  if (action === 'jump-today') selectDate(state.data.date);
   if (action === 'open-calendar') {
     state.calendarOpen = true;
     render();
@@ -179,6 +200,35 @@ app.addEventListener('click', (event) => {
     state.selectedPlayer = null;
     render();
   }
+});
+
+app.addEventListener('pointerover', (event) => {
+  const point = event.target.closest('[data-chart-point]');
+  if (point) showChartTooltip(point, event);
+});
+
+app.addEventListener('pointermove', (event) => {
+  const point = event.target.closest('[data-chart-point]');
+  if (point) showChartTooltip(point, event);
+});
+
+app.addEventListener('pointerout', (event) => {
+  const point = event.target.closest('[data-chart-point]');
+  if (point && !point.contains(event.relatedTarget) && document.activeElement !== point) hideChartTooltip(point);
+});
+
+app.addEventListener('focusin', (event) => {
+  const point = event.target.closest('[data-chart-point]');
+  if (point) showChartTooltip(point);
+});
+
+app.addEventListener('focusout', (event) => {
+  const point = event.target.closest('[data-chart-point]');
+  if (point) hideChartTooltip(point);
+});
+
+window.addEventListener('resize', () => {
+  app.querySelectorAll('[data-chart-tooltip]').forEach((tooltip) => { tooltip.hidden = true; });
 });
 
 document.addEventListener('keydown', (event) => {

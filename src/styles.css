@@ -67,11 +67,12 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .section-heading p { margin: 4px 0 0; color: var(--ink-soft); font-size: 12px; }
 .text-action { display: flex; align-items: center; gap: 5px; padding: 8px; color: var(--forest); background: transparent; border: 0; border-radius: 8px; font-weight: 700; cursor: pointer; }
 .text-action:hover { background: var(--sage); }
-.date-toolbar { display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; gap: 7px; margin: -2px 0 12px; padding: 7px; background: #f0f1e8; border: 1px solid #dfe1d7; border-radius: 12px; }
+.date-toolbar { display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px auto; align-items: center; gap: 7px; margin: -2px 0 12px; padding: 7px; background: #f0f1e8; border: 1px solid #dfe1d7; border-radius: 12px; }
 .date-toolbar button { display: grid; place-items: center; min-height: 34px; padding: 0; color: var(--forest); background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
 .date-toolbar button:hover:not(:disabled) { background: #dce6d6; }
 .date-toolbar button:disabled { color: #aeb4ad; cursor: default; }
 .date-toolbar .date-picker-trigger { display: flex; justify-content: center; gap: 7px; font-size: 12px; font-weight: 800; }
+.date-toolbar .today-shortcut { min-width: 48px; padding-inline: 8px; background: var(--surface); border: 1px solid #d5ddd1; font-size: 11px; font-weight: 850; }
 .leader-labels, .leader-row { display: grid; grid-template-columns: 30px minmax(82px, 1fr) 46px 48px 60px; align-items: center; gap: 4px; }
 .leader-labels { padding: 0 8px 7px; color: #79817b; font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
 .leader-labels span:nth-child(3), .leader-labels span:nth-child(4), .leader-labels span:nth-child(5) { text-align: right; }
@@ -114,8 +115,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 22px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
 .metric-grid div { display: grid; justify-items: center; gap: 6px; padding: 17px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }.metric-grid div:nth-child(3n) { border-right: 0; }.metric-grid div:nth-last-child(-n+3) { border-bottom: 0; }
 .metric-grid span { color: var(--ink-soft); font-size: 10px; }.metric-grid strong { font: 700 23px Georgia, serif; }
-.chart-card { margin-bottom: 14px; padding: 17px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 25px rgba(19,49,35,.05); }
-.sparkline { margin: 0; }.sparkline svg { display: block; width: 100%; height: auto; overflow: visible; }.sparkline figcaption { display: flex; align-items: center; justify-content: space-between; color: #727a74; font-size: 9px; }.sparkline figcaption strong { color: var(--forest); font-size: 11px; }
+.chart-card { margin-bottom: 14px; padding: 17px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 25px rgba(19,49,35,.05); }
+.sparkline { position: relative; margin: 0; }.sparkline svg { display: block; width: 100%; height: auto; overflow: visible; }.sparkline figcaption { display: flex; align-items: center; justify-content: space-between; padding-left: 37px; color: #727a74; font-size: 9px; }.sparkline figcaption strong { color: var(--forest); font-size: 11px; }
+.chart-axis text { fill: #717a73; font-size: 8px; font-variant-numeric: tabular-nums; }.chart-axis line { stroke: #dfe2d9; stroke-width: 1; stroke-dasharray: 2 3; }.chart-area { fill: #527c58; opacity: .14; }.chart-point { cursor: crosshair; outline: none; }.chart-point-dot { fill: #315c42; stroke: var(--surface); stroke-width: 1.5; opacity: .34; transition: opacity .15s ease, r .15s ease, fill .15s ease; }.chart-point-hit { fill: transparent; pointer-events: all; }.chart-point.is-latest .chart-point-dot, .chart-point:hover .chart-point-dot, .chart-point:focus .chart-point-dot { fill: var(--gold); stroke-width: 2; opacity: 1; r: 4.5px; }.chart-point:focus .chart-point-hit { stroke: #e4a50c; stroke-width: 2; }
+.chart-tooltip { position: absolute; z-index: 5; display: grid; min-width: 96px; gap: 2px; padding: 7px 9px; transform: translate(-50%, -100%); color: white; background: var(--forest-deep); border: 1px solid #4d765f; border-radius: 9px; box-shadow: 0 7px 20px rgba(8, 41, 28, .2); pointer-events: none; text-align: center; white-space: nowrap; }.chart-tooltip[hidden] { display: none; }.chart-tooltip span { color: #dce8df; font-size: 9px; }.chart-tooltip strong { font-size: 11px; }
 .chart-empty { padding: 30px 12px; color: var(--ink-soft); background: #f2f2ea; border-radius: 12px; text-align: center; font-size: 13px; }
 .trend-stack { display: grid; gap: 14px; }.trend-title { display: flex; justify-content: space-between; margin-bottom: 8px; }.trend-title div { display: grid; gap: 3px; }.trend-title small { color: var(--ink-soft); }.trend-score { font: 700 24px Georgia, serif; }
 .calendar-backdrop { position: fixed; z-index: 80; inset: 0; display: grid; align-items: end; padding: 18px; background: rgba(6, 27, 18, .46); backdrop-filter: blur(4px); }

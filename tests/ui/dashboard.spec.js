@@ -32,6 +32,14 @@ test('loads the fallback leaderboard and navigates through player details', asyn
 test('bottom navigation exposes trends and the external MapTap link', async ({ page }) => {
   await page.getByRole('button', { name: 'Trends' }).click();
   await expect(page.getByRole('heading', { name: 'See who’s finding their range' })).toBeVisible();
+  const chart = page.locator('[data-chart]').first();
+  await expect(chart.locator('.chart-axis')).toHaveCount(3);
+  const point = chart.locator('[data-chart-point]').first();
+  await point.hover();
+  await expect(chart.locator('[data-chart-tooltip]')).toBeVisible();
+  await expect(chart.locator('[data-chart-tooltip]')).toContainText('points');
+  await point.focus();
+  await expect(chart.locator('[data-chart-tooltip]')).toBeVisible();
   const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });
   await expect(mapTapLink).toHaveAttribute('href', 'https://maptap.gg');
   await expect(mapTapLink).toHaveAttribute('target', '_blank');
@@ -44,6 +52,7 @@ test('mobile leaderboard has no horizontal overflow', async ({ page }) => {
 });
 
 test('navigates previous and next leaderboard days', async ({ page }) => {
+  await expect(page.getByRole('button', { name: 'Jump to today' })).toBeDisabled();
   const previousDate = addDays(scoreSnapshot.date, -1);
   await page.getByRole('button', { name: 'Previous day' }).click();
   await expect(page.getByRole('heading', { name: 'Daily leaderboard' })).toBeVisible();
@@ -52,8 +61,10 @@ test('navigates previous and next leaderboard days', async ({ page }) => {
     const row = page.getByRole('button', { name: `View ${player.displayName} details` });
     await expect(row).toContainText(Number.isFinite(scoreOn(player, previousDate)) ? 'Played' : 'Not yet');
   }
-  await page.getByRole('button', { name: 'Next day' }).click();
+  await expect(page.getByRole('button', { name: 'Jump to today' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Jump to today' }).click();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Jump to today' })).toBeDisabled();
 });
 
 test('calendar selects the June 1 lower bound with one completed score', async ({ page }) => {
