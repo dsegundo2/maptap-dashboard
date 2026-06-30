@@ -1,8 +1,9 @@
 import { compactHistory, dateKey, enrichDashboard, globalStanding } from './stats.js';
+import { enabledPlayers } from './players.js';
 
 const PROFILE_ENDPOINT = 'https://us-central1-jjexperiment-12af6.cloudfunctions.net/getPublicProfile';
 const LEADERBOARD_ROOT = 'https://firebasestorage.googleapis.com/v0/b/jjexperiment-12af6.appspot.com/o/data%2Fleaderboards%2F';
-const CACHE_KEY = 'maptap-dashboard-cache-v2';
+const CACHE_KEY = 'maptap-dashboard-cache-v3';
 const CACHE_TTL = 5 * 60 * 1000;
 
 function asset(path) {
@@ -19,15 +20,16 @@ async function profileFor(user) {
   const payload = await jsonFetch(PROFILE_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: { nickname: user.username } })
+    body: JSON.stringify({ data: { nickname: user.maptapUsername } })
   });
   const result = payload.result;
-  if (!result?.success || !result.user || result.user.leaderboardVisible === false) throw new Error(`No public profile for ${user.username}`);
+  if (!result?.success || !result.user || result.user.leaderboardVisible === false) throw new Error(`No public profile for ${user.maptapUsername}`);
   return { config: user, profile: result.user };
 }
 
 export async function fetchLiveDashboard() {
-  const [users, config] = await Promise.all([jsonFetch(asset('data/users.json')), jsonFetch(asset('data/config.json'))]);
+  const [playerRegistry, config] = await Promise.all([jsonFetch(asset('data/players.json')), jsonFetch(asset('data/config.json'))]);
+  const users = enabledPlayers(playerRegistry);
   const today = dateKey(new Date(), config.timezone);
   const leaderboardUrl = `${LEADERBOARD_ROOT}daily-${today}.json?alt=media&v=${Date.now()}`;
   const leaderboardPromise = jsonFetch(leaderboardUrl).then((value) => value.leaderboard);
@@ -36,7 +38,7 @@ export async function fetchLiveDashboard() {
     try {
       profiles.push(await profileFor(user));
     } catch (error) {
-      console.warn(`Public MapTap profile unavailable for ${user.username}; keeping the configured friend visible.`, error);
+      console.warn(`Public MapTap profile unavailable for ${user.maptapUsername}; keeping the configured player visible.`, error);
       profiles.push({ config: user, profile: null });
     }
     if (users.length > 1) await new Promise((resolve) => setTimeout(resolve, 650));
@@ -45,9 +47,9 @@ export async function fetchLiveDashboard() {
   const players = profiles.map(({ config: user, profile }) => {
     if (!profile) {
       return {
-        id: `configured:${user.username}`,
-        username: user.username,
-        displayName: user.displayName || user.username,
+        id: `configured:${user.maptapUsername}`,
+        maptapUsername: user.maptapUsername,
+        displayName: user.displayName || user.maptapUsername,
         score: null,
         playedToday: false,
         globalRank: null,
@@ -61,7 +63,7 @@ export async function fetchLiveDashboard() {
     const standing = exact ? { rank: exact.rank, percentile: ((leaderboard.totalPlayers - exact.rank) / leaderboard.totalPlayers) * 100 } : globalStanding(score, leaderboard);
     return {
       id: profile.userId,
-      username: user.username,
+      maptapUsername: user.maptapUsername,
       displayName: user.displayName || profile.nickname,
       score,
       playedToday: Number.isFinite(score),

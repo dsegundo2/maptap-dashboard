@@ -3,7 +3,7 @@ import { fetchLiveDashboard, fetchStandingsForDate, fetchStaticDashboard, readCa
 import { addDays, dashboardForDate, leaderboardDateRange } from './lib/stats.js';
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
-import { aboutView, playersView, todayView, trendsView } from './ui/views.js';
+import { playersView, todayView, trendsView } from './ui/views.js';
 
 const app = document.querySelector('#app');
 const state = {
@@ -25,17 +25,16 @@ function shell(content = '') {
   const navItems = [
     ['today', 'Today', 'home'],
     ['players', 'Players', 'users'],
-    ['trends', 'Trends', 'trend'],
-    ['about', 'About', 'info']
+    ['trends', 'Trends', 'trend']
   ];
   return `<div class="app-shell">
     <header class="app-header">
       <div class="brand">${logo}<div><strong>MapTap Dashboard</strong><span>${state.data ? formatUpdated(state.data.generatedAt) : 'Finding today’s trail…'}</span></div></div>
-      <button class="icon-button ${state.refreshing ? 'is-spinning' : ''}" type="button" data-action="refresh" aria-label="Refresh scores" ${state.refreshing ? 'disabled' : ''}>${icon('refresh', 22)}</button>
+      <button class="refresh-button ${state.refreshing ? 'is-spinning' : ''}" type="button" data-action="refresh" aria-label="Refresh scores" ${state.refreshing ? 'disabled' : ''}>${icon('refresh', 17)}<span>Refresh</span></button>
     </header>
     ${state.message ? `<div class="toast" role="status">${state.message}</div>` : ''}
     <main id="main-content">${content || '<div class="loading-state"><div class="loader"></div><strong>Checking today’s scores</strong><span>MapTap’s public profiles are on the way.</span></div>'}</main>
-    <nav class="bottom-nav" aria-label="Dashboard views">${navItems.map(([view, label, glyph]) => `<button type="button" class="${state.view === view ? 'active' : ''}" data-nav="${view}" ${state.view === view ? 'aria-current="page"' : ''}>${icon(glyph, 21)}<span>${label}</span></button>`).join('')}</nav>
+    <nav class="bottom-nav" aria-label="Dashboard views">${navItems.map(([view, label, glyph]) => `<button type="button" class="${state.view === view ? 'active' : ''}" data-nav="${view}" ${state.view === view ? 'aria-current="page"' : ''}>${icon(glyph, 21)}<span>${label}</span></button>`).join('')}<a href="https://maptap.gg" target="_blank" rel="noreferrer" aria-label="Play on MapTap.gg (opens in new window)">${icon('external', 21)}<span>MapTap</span></a></nav>
   </div>`;
 }
 
@@ -57,8 +56,7 @@ function render() {
       standingsLoading: state.standingsLoading
     }),
     players: () => playersView(state.data, state.selectedPlayer),
-    trends: () => trendsView(state.data),
-    about: () => aboutView(state.data)
+    trends: () => trendsView(state.data)
   };
   app.innerHTML = shell(views[state.view]());
 }
@@ -106,7 +104,7 @@ async function shareSelectedDate() {
   const isToday = state.selectedDate === data.date;
   const dateLabel = formatDate(state.selectedDate);
   const text = leader
-    ? `${isToday ? 'Today’s' : `${dateLabel}’s`} MapTap leader is ${leader.displayName} with ${leader.score.toLocaleString()} points. See the full friend leaderboard:`
+    ? `${isToday ? 'Today’s' : `${dateLabel}’s`} MapTap leader is ${leader.displayName} with ${leader.score.toLocaleString()} points. See the full player leaderboard:`
     : `No one in our MapTap group recorded a score for ${isToday ? 'today' : dateLabel}:`;
   const url = new URL(window.location.href);
   url.searchParams.set('date', state.selectedDate);
@@ -159,12 +157,6 @@ app.addEventListener('click', (event) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
-  const summaryPlayer = event.target.closest('[data-summary-player]');
-  if (summaryPlayer) {
-    state.spotlightPlayer = summaryPlayer.dataset.summaryPlayer;
-    render();
-    return;
-  }
   const dateButton = event.target.closest('[data-date]');
   if (dateButton) {
     selectDate(dateButton.dataset.date);
@@ -194,6 +186,13 @@ document.addEventListener('keydown', (event) => {
     state.calendarOpen = false;
     render();
   }
+});
+
+app.addEventListener('change', (event) => {
+  const select = event.target.closest('[data-summary-select]');
+  if (!select) return;
+  state.spotlightPlayer = select.value;
+  render();
 });
 
 async function init() {

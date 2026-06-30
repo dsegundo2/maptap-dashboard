@@ -1,29 +1,37 @@
 # MapTap Dashboard
 
-A mobile-first, login-free dashboard for comparing public [MapTap](https://maptap.gg) scores among a small group of friends. It is a fully static Vite site designed for GitHub Pages.
+A mobile-first, login-free dashboard for comparing public [MapTap](https://maptap.gg) player scores. It is a fully static Vite site designed for GitHub Pages.
 
 ## Product decisions
 
-- **Small group first:** optimized for fewer than 10 friends. Everyone stays visible; there is no search, pagination, account, or “my stats” state.
-- **Named summaries:** 30-day stats always belong to an explicitly selected friend (for example, “Eo2’s last 30 days”).
+- **Small roster first:** optimized for up to 10 players. Everyone stays visible; there is no search, pagination, account, or “my stats” state.
+- **Named summaries:** 30-day stats always belong to an explicitly selected player.
 - **Historical leaderboards:** previous/next arrows and an accessible calendar cover the rolling 30-day window, never earlier than June 1, 2026, including partial and empty days.
 - **Fresh in the browser:** each page load revalidates public profiles against MapTap. A manual refresh bypasses the daily leaderboard cache URL and Share refreshes before composing its message.
 - **Resilient on static hosting:** `public/data/scores.json` is the most recent generated fallback. A failed live request never blanks the dashboard.
 - **Honest standings:** exact rank is used when MapTap publishes the player in its top list; otherwise rank and percentile use MapTap’s own public histogram method and are treated as estimates.
 - **Useful iMessage sharing:** the Web Share payload includes the current leader and score. GitHub Actions regenerates the static 1200×630 Open Graph image hourly—the closest a serverless GitHub Pages site can get to on-demand link previews.
 
-## Add friends
+## Manage players
 
-Edit [`public/data/users.json`](public/data/users.json):
+[`public/data/players.json`](public/data/players.json) is the single hand-edited player registry. Add, remove, reorder, or disable players only there:
 
 ```json
 [
-  { "username": "Eo2", "displayName": "Eo2" },
-  { "username": "PublicMapTapNickname", "displayName": "Friend’s name" }
+  {
+    "maptapUsername": "PublicMapTapNickname",
+    "displayName": "Dashboard name",
+    "enabled": true
+  }
 ]
 ```
 
-`username` must match a public MapTap nickname. Keep the list under 10; requests are deliberately spaced by 650 ms when there is more than one profile.
+- `maptapUsername` must exactly match the public MapTap nickname.
+- `displayName` is the label shown throughout the dashboard.
+- Set `enabled` to `false` to temporarily hide a player, or remove the object permanently.
+- `temporary` is optional metadata for entries that will be removed later.
+
+The registry is validated for required fields, duplicates, and the 10-player limit. [`public/data/scores.json`](public/data/scores.json) is generated from this registry and should not be edited manually. Requests are deliberately spaced by 650 ms when there is more than one player.
 
 ## Local development
 
@@ -49,7 +57,7 @@ The UI suite is Chromium-only and starts the local Vite server automatically. Un
 
 ## Data flow
 
-1. The browser reads the friend/config JSON files.
+1. The browser reads the central player registry and config JSON.
 2. It calls MapTap’s public `getPublicProfile` Firebase callable for each configured nickname.
 3. It reads MapTap’s public daily leaderboard JSON for global totals and score buckets.
 4. It calculates local group ranking, daily wins, streaks, and named 30-day summaries.

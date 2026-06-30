@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-06-29T23:43:58.670Z",
+  "generatedAt": "2026-06-30T04:03:15.785Z",
   "date": "2026-06-29",
-  "globalPlayers": 260463,
+  "globalPlayers": 291260,
   "players": [
     {
       "id": "MT6lKKGOZraR9jgHBgZTuucxPiE3",
-      "username": "Eo2",
+      "maptapUsername": "Eo2",
       "displayName": "Eo2",
       "score": 932,
       "playedToday": true,
-      "globalRank": 32487,
+      "globalRank": 36328,
       "globalPercentile": 87,
       "history": [
         {
@@ -52,11 +52,11 @@
     },
     {
       "id": "Q2bcCy2WqefdzweL7JpVuj7Y7Df2",
-      "username": "DiegoT",
+      "maptapUsername": "DiegoT",
       "displayName": "Diego Tomas",
       "score": 906,
       "playedToday": true,
-      "globalRank": 73752,
+      "globalRank": 82472,
       "globalPercentile": 71,
       "history": [
         {

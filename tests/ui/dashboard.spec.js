@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import playerRegistry from '../../public/data/players.json' with { type: 'json' };
+
+const [temporaryPlayer, primaryPlayer] = playerRegistry;
 
 test.beforeEach(async ({ page }) => {
   await page.route('https://us-central1-jjexperiment-12af6.cloudfunctions.net/**', (route) => route.abort());
@@ -8,21 +11,21 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('loads the fallback leaderboard and navigates through player details', async ({ page }) => {
-  await expect(page.getByText('Eo2', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Diego Tomas', { exact: true }).first()).toBeVisible();
-  await expect(page.getByRole('button', { name: 'View Diego Tomas details' })).toContainText('Played');
-  await page.getByRole('button', { name: /View Eo2 details/i }).click();
-  await expect(page.getByRole('heading', { name: 'Eo2' })).toBeVisible();
+  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toBeVisible();
+  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toContainText('Played');
+  await page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` }).click();
+  await expect(page.getByRole('heading', { name: temporaryPlayer.displayName, exact: true })).toBeVisible();
   await expect(page.getByText('Score trail')).toBeVisible();
-  await page.getByRole('button', { name: 'All friends' }).click();
-  await expect(page.getByRole('heading', { name: 'The whole trail crew' })).toBeVisible();
+  await page.getByRole('button', { name: 'All players' }).click();
+  await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
 });
 
-test('bottom navigation exposes trends and about copy', async ({ page }) => {
+test('bottom navigation exposes trends and the external MapTap link', async ({ page }) => {
   await page.getByRole('button', { name: 'Trends' }).click();
   await expect(page.getByRole('heading', { name: 'See who’s finding their range' })).toBeVisible();
-  await page.getByRole('button', { name: 'About' }).click();
-  await expect(page.getByRole('heading', { name: 'How scores stay fresh' })).toBeVisible();
+  const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });
+  await expect(mapTapLink).toHaveAttribute('href', 'https://maptap.gg');
+  await expect(mapTapLink).toHaveAttribute('target', '_blank');
 });
 
 test('mobile leaderboard has no horizontal overflow', async ({ page }) => {
@@ -35,9 +38,9 @@ test('navigates previous and next leaderboard days', async ({ page }) => {
   await page.getByRole('button', { name: 'Previous day' }).click();
   await expect(page.getByRole('heading', { name: 'Daily leaderboard' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText('Jun 28');
-  await expect(page.getByRole('button', { name: 'View Eo2 details' })).toContainText('Played');
-  await expect(page.getByRole('button', { name: 'View Eo2 details' })).not.toContainText('932');
-  await expect(page.getByRole('button', { name: 'View Diego Tomas details' })).toContainText('Played');
+  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toContainText('Played');
+  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).not.toContainText('932');
+  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toContainText('Played');
   await page.getByRole('button', { name: 'Next day' }).click();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
 });
@@ -46,16 +49,16 @@ test('calendar selects the June 1 lower bound with one completed score', async (
   await page.getByRole('button', { name: 'Choose leaderboard date' }).click();
   await expect(page.getByRole('dialog', { name: 'Choose a day' })).toBeVisible();
   await page.getByRole('button', { name: 'June 1, 2026' }).click();
-  await expect(page.getByRole('heading', { name: 'Diego Tomas', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'View Diego Tomas details' })).toContainText('759');
-  await expect(page.getByRole('button', { name: 'View Eo2 details' })).toContainText('Not yet');
+  await expect(page.getByRole('heading', { name: primaryPlayer.displayName, exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toContainText('759');
+  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toContainText('Not yet');
   await expect(page.getByRole('button', { name: 'Previous day' })).toBeDisabled();
 });
 
 test('renders a clear empty state when no one has a score', async ({ page }) => {
-  const players = ['Eo2', 'Diego Tomas'].map((displayName, index) => ({
+  const players = playerRegistry.map(({ displayName, maptapUsername }, index) => ({
     id: `empty-${index}`,
-    username: displayName,
+    maptapUsername,
     displayName,
     score: 900 - index,
     playedToday: true,
@@ -70,11 +73,11 @@ test('renders a clear empty state when no one has a score', async ({ page }) => 
   await expect(page.locator('.leader-row .played-state')).toHaveText(['Not yet', 'Not yet']);
 });
 
-test('keeps all nine friends directly visible without pagination', async ({ page }) => {
+test('keeps all nine players directly visible without pagination', async ({ page }) => {
   const players = Array.from({ length: 9 }, (_, index) => ({
-    id: `friend-${index + 1}`,
-    username: `Friend${index + 1}`,
-    displayName: `Friend ${index + 1}`,
+    id: `player-${index + 1}`,
+    maptapUsername: `Player${index + 1}`,
+    displayName: `Player ${index + 1}`,
     score: 990 - index * 10,
     playedToday: true,
     globalRank: index + 31,
@@ -85,8 +88,9 @@ test('keeps all nine friends directly visible without pagination', async ({ page
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'View Friend 9 details' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View Player 9 details' })).toBeVisible();
   expect(await page.locator('[data-player]').count()).toBe(9);
+  expect(await page.getByRole('combobox', { name: 'Select player for 30-day summary' }).locator('option').count()).toBe(9);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
 });

@@ -26,7 +26,7 @@ const svg = `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
   <rect x="62" y="76" width="1076" height="494" rx="42" fill="url(#panel)"/>
   <g transform="translate(100 114)"><circle cx="31" cy="31" r="31" fill="#dce6d4"/><path d="M9 47 29 17l10 14 8-11 12 27Z" fill="#17442e"/></g>
   <text x="180" y="145" fill="#fff" font-family="Arial, sans-serif" font-size="40" font-weight="800">MapTap Dashboard</text>
-  <text x="180" y="181" fill="#c5d5c8" font-family="Arial, sans-serif" font-size="22">Today’s friend leaderboard · ${escape(prettyDate)}</text>
+  <text x="180" y="181" fill="#c5d5c8" font-family="Arial, sans-serif" font-size="22">Today’s player leaderboard · ${escape(prettyDate)}</text>
   <line x1="100" y1="228" x2="1100" y2="228" stroke="#ffffff" stroke-opacity=".2"/>
   ${rowMarkup}
   <text x="100" y="535" fill="#b8cbbd" font-family="Arial, sans-serif" font-size="18">Fresh public MapTap scores · updated ${escape(new Date(data.generatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }))}</text>

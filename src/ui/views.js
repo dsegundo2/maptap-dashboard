@@ -57,7 +57,7 @@ export function todayView(data, options = {}) {
     </section>
 
     <section class="surface leaderboard" aria-labelledby="leaderboard-title">
-      <div class="section-heading"><div><h2 id="leaderboard-title">${isToday ? 'Today’s leaderboard' : 'Daily leaderboard'}</h2><p>${data.players.length} friends${standingsLoading ? ' · checking global standings…' : ''}</p></div><button class="text-action" type="button" data-action="share">${icon('share', 18)} Share</button></div>
+      <div class="section-heading"><div><h2 id="leaderboard-title">${isToday ? 'Today’s leaderboard' : 'Daily leaderboard'}</h2><p>${data.players.length} players${standingsLoading ? ' · checking global standings…' : ''}</p></div><button class="text-action" type="button" data-action="share">${icon('share', 18)} Share</button></div>
       <div class="date-toolbar" aria-label="Leaderboard date controls">
         <button type="button" data-action="previous-day" aria-label="Previous day" ${data.date <= minimumDate ? 'disabled' : ''}>${icon('chevron-left', 18)}</button>
         <button class="date-picker-trigger" type="button" data-action="open-calendar" aria-label="Choose leaderboard date">${icon('calendar', 16)}<span>${formatDate(data.date, { year: undefined })}</span></button>
@@ -69,8 +69,7 @@ export function todayView(data, options = {}) {
     </section>
 
     <section class="summary-section" aria-labelledby="summary-title">
-      <div class="section-heading"><div><h2 id="summary-title">${spotlight ? `${escapeHtml(spotlight.displayName)}’s last 30 days` : 'Last 30 days'}</h2><p>Choose any friend—no account needed</p></div></div>
-      <div class="person-switcher" role="group" aria-label="Choose player for 30-day summary">${data.players.map((player) => `<button type="button" class="${player.id === spotlight?.id ? 'active' : ''}" data-summary-player="${escapeHtml(player.id)}">${escapeHtml(player.displayName)}</button>`).join('')}</div>
+      <div class="summary-heading"><h2 id="summary-title">${spotlight ? `${escapeHtml(spotlight.displayName)}’s last 30 days` : 'Last 30 days'}</h2><label class="player-select"><span>Player</span><select data-summary-select aria-label="Select player for 30-day summary">${data.players.map((player) => `<option value="${escapeHtml(player.id)}" ${player.id === spotlight?.id ? 'selected' : ''}>${escapeHtml(player.displayName)}</option>`).join('')}</select></label></div>
       <div class="summary-grid">
         <div><span>Daily wins</span><strong>${spotlight?.summary.wins ?? 0}</strong><small>in the group</small></div>
         <div><span>Best streak</span><strong>${spotlight?.summary.longestWinStreak ?? 0}</strong><small>days</small></div>
@@ -96,7 +95,7 @@ export function playersView(data, selectedId) {
   const player = data.players.find((item) => item.id === selectedId);
   if (player) return playerDetail(player, data.date);
   return `<div class="view content-view" data-view="players">
-    <header class="page-intro"><p>Friends</p><h1>The whole trail crew</h1><span>Built for a close group—everyone stays in view.</span></header>
+    <header class="players-heading"><h1>Players</h1></header>
     <section class="player-list" aria-label="Players">${data.players.map(playerCard).join('')}</section>
   </div>`;
 }
@@ -104,7 +103,7 @@ export function playersView(data, selectedId) {
 function playerDetail(player, date) {
   const summary = player.summary;
   return `<div class="view content-view" data-view="players">
-    <button class="back-action" type="button" data-action="back-players">← All friends</button>
+    <button class="back-action" type="button" data-action="back-players">← All players</button>
     <header class="profile-head"><span class="avatar large">${escapeHtml(player.displayName.slice(0, 1).toUpperCase())}</span><div><p>Player detail</p><h1>${escapeHtml(player.displayName)}</h1><span>${player.playedToday ? `${formatScore(player.score)} on ${formatDate(date, { year: undefined })}` : 'Not played today'}</span></div></header>
     <section class="metric-grid" aria-label="30 day statistics">
       <div><span>Average</span><strong>${formatScore(summary.average)}</strong></div><div><span>Best</span><strong>${formatScore(summary.best)}</strong></div>
@@ -117,20 +116,7 @@ function playerDetail(player, date) {
 
 export function trendsView(data) {
   return `<div class="view content-view" data-view="trends">
-    <header class="page-intro"><p>Trends</p><h1>See who’s finding their range</h1><span>Thirty-day score trails for every friend.</span></header>
+    <header class="page-intro"><p>Trends</p><h1>See who’s finding their range</h1><span>Thirty-day score trails for every player.</span></header>
     <div class="trend-stack">${data.players.map((player) => `<section class="chart-card"><div class="trend-title"><div><strong>${escapeHtml(player.displayName)}</strong><small>${formatScore(player.summary.average)} average</small></div><span class="trend-score">${formatScore(player.score)}</span></div>${sparkline(player.history, { label: `${player.displayName} score history`, height: 86 })}</section>`).join('')}</div>
-  </div>`;
-}
-
-export function aboutView(data) {
-  return `<div class="view content-view" data-view="about">
-    <header class="page-intro"><p>About</p><h1>A friendly view of MapTap</h1><span>A lightweight dashboard for a group of fewer than ten friends.</span></header>
-    <section class="about-copy">
-      <h2>How scores stay fresh</h2><p>The app reads each configured public MapTap profile in your browser and compares today’s scores with MapTap’s public daily totals. The last successful static snapshot remains available if MapTap is temporarily unreachable.</p>
-      <h2>What “global” means</h2><p>Global rank is exact for players included in MapTap’s published leaderboard and estimated from its public score distribution otherwise. Percentiles compare a score with all completed games today.</p>
-      <h2>Sharing on iMessage</h2><p>The Share button refreshes first, then includes today’s leader and score in the message. GitHub Actions rebuilds the large link-preview image hourly because GitHub Pages itself cannot render metadata on demand.</p>
-      <div class="data-note">${icon('wifi', 19)} <span>Snapshot generated <strong>${new Date(data.generatedAt).toLocaleString()}</strong></span></div>
-      <a class="maptap-link" href="https://maptap.gg" target="_blank" rel="noreferrer">Play on MapTap.gg ↗</a>
-    </section>
   </div>`;
 }

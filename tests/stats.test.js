@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { compactHistory, dashboardForDate, enrichDashboard, globalStanding, leaderboardDateRange } from '../src/lib/stats.js';
+import { compactHistory, dashboardForDate, dateKey, enrichDashboard, globalStanding, leaderboardDateRange } from '../src/lib/stats.js';
+
+describe('dateKey', () => {
+  it('always returns an ISO date in the configured timezone', () => {
+    expect(dateKey(new Date('2026-06-30T01:00:00Z'), 'America/Chicago')).toBe('2026-06-29');
+  });
+});
 
 describe('globalStanding', () => {
   it('estimates rank and percentile from public buckets', () => {

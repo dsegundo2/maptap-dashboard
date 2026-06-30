@@ -1,9 +1,11 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { compactHistory, dateKey, globalStanding } from '../src/lib/stats.js';
+import { enabledPlayers } from '../src/lib/players.js';
 
 const PROFILE_ENDPOINT = 'https://us-central1-jjexperiment-12af6.cloudfunctions.net/getPublicProfile';
 const LEADERBOARD_ROOT = 'https://firebasestorage.googleapis.com/v0/b/jjexperiment-12af6.appspot.com/o/data%2Fleaderboards%2F';
-const users = JSON.parse(await readFile(new URL('../public/data/users.json', import.meta.url), 'utf8'));
+const playerRegistry = JSON.parse(await readFile(new URL('../public/data/players.json', import.meta.url), 'utf8'));
+const users = enabledPlayers(playerRegistry);
 const config = JSON.parse(await readFile(new URL('../public/data/config.json', import.meta.url), 'utf8'));
 const today = dateKey(new Date(), config.timezone);
 
@@ -21,15 +23,15 @@ for (const [index, user] of users.entries()) {
   const payload = await getJson(PROFILE_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: { nickname: user.username } })
+    body: JSON.stringify({ data: { nickname: user.maptapUsername } })
   });
   const profile = payload.result?.user;
   if (!payload.result?.success || !profile || profile.leaderboardVisible === false) {
-    console.warn(`Public profile unavailable; keeping configured friend visible: ${user.username}`);
+    console.warn(`Public profile unavailable; keeping configured player visible: ${user.maptapUsername}`);
     players.push({
-      id: `configured:${user.username}`,
-      username: user.username,
-      displayName: user.displayName || user.username,
+      id: `configured:${user.maptapUsername}`,
+      maptapUsername: user.maptapUsername,
+      displayName: user.displayName || user.maptapUsername,
       score: null,
       playedToday: false,
       globalRank: null,
@@ -47,7 +49,7 @@ for (const [index, user] of users.entries()) {
     : globalStanding(score, leaderboard);
   players.push({
     id: profile.userId,
-    username: user.username,
+    maptapUsername: user.maptapUsername,
     displayName: user.displayName || profile.nickname,
     score,
     playedToday: Number.isFinite(score),

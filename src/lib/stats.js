@@ -1,12 +1,14 @@
 const DAY_MS = 86_400_000;
 
 export function dateKey(date = new Date(), timezone = 'America/Chicago') {
-  return new Intl.DateTimeFormat('en-CA', {
+  const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: timezone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
-  }).format(date);
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 export function scoreForDate(player, date) {
