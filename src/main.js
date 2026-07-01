@@ -3,7 +3,7 @@ import { fetchLiveDashboard, fetchStandingsForDate, fetchStaticDashboard, readCa
 import { addDays, dashboardForDate, leaderboardDateRange } from './lib/stats.js';
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
-import { playersView, todayView, trendsView } from './ui/views.js';
+import { playersView, todayView } from './ui/views.js';
 
 const app = document.querySelector('#app');
 const state = {
@@ -24,8 +24,7 @@ const state = {
 function shell(content = '') {
   const navItems = [
     ['today', 'Today', 'home'],
-    ['players', 'Players', 'users'],
-    ['trends', 'Trends', 'trend']
+    ['players', 'Players', 'users']
   ];
   return `<div class="app-shell">
     <header class="app-header">
@@ -55,8 +54,7 @@ function render() {
       calendarOpen: state.calendarOpen,
       standingsLoading: state.standingsLoading
     }),
-    players: () => playersView(state.data, state.selectedPlayer),
-    trends: () => trendsView(state.data)
+    players: () => playersView(state.data, state.selectedPlayer)
   };
   app.innerHTML = shell(views[state.view]());
 }
@@ -161,6 +159,11 @@ function hideChartTooltip(point) {
 }
 
 app.addEventListener('click', (event) => {
+  const chartPoint = event.target.closest('[data-chart-point]');
+  if (chartPoint) {
+    showChartTooltip(chartPoint);
+    return;
+  }
   const nav = event.target.closest('[data-nav]');
   if (nav) {
     state.view = nav.dataset.nav;
@@ -214,7 +217,7 @@ app.addEventListener('pointermove', (event) => {
 
 app.addEventListener('pointerout', (event) => {
   const point = event.target.closest('[data-chart-point]');
-  if (point && !point.contains(event.relatedTarget) && document.activeElement !== point) hideChartTooltip(point);
+  if (event.pointerType === 'mouse' && point && !point.contains(event.relatedTarget) && document.activeElement !== point) hideChartTooltip(point);
 });
 
 app.addEventListener('focusin', (event) => {

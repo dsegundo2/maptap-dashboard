@@ -36,6 +36,7 @@ for (const [index, user] of users.entries()) {
       playedToday: false,
       globalRank: null,
       globalPercentile: null,
+      displayOrder: index,
       history: []
     });
     if (index < users.length - 1) await new Promise((resolve) => setTimeout(resolve, 650));
@@ -55,6 +56,7 @@ for (const [index, user] of users.entries()) {
     playedToday: Number.isFinite(score),
     globalRank: standing.rank,
     globalPercentile: standing.percentile,
+    displayOrder: index,
     history
   });
   if (index < users.length - 1) await new Promise((resolve) => setTimeout(resolve, 650));

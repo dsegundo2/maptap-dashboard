@@ -31,24 +31,23 @@ test('loads the fallback leaderboard and navigates through player details', asyn
   await expect(scoreTrail.locator('.chart-axis')).toHaveCount(3);
   const trailPoints = scoreTrail.locator('[data-chart-point]');
   expect(await trailPoints.count()).toBeGreaterThan(1);
+  const geometryBeforeClick = await scoreTrail.locator('polyline').getAttribute('points');
   await trailPoints.first().hover();
   await expect(scoreTrail.locator('[data-chart-tooltip]')).toBeVisible();
   await expect(scoreTrail.locator('[data-chart-tooltip]')).toContainText('points');
+  await trailPoints.first().click();
+  await expect(scoreTrail.locator('polyline')).toHaveAttribute('points', geometryBeforeClick);
+  await expect(scoreTrail.locator('svg')).toHaveCount(1);
+  await expect(page.locator('.view')).toHaveCSS('animation-name', 'none');
   await page.getByRole('button', { name: 'All players' }).click();
   await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
 });
 
-test('bottom navigation exposes trends and the external MapTap link', async ({ page }) => {
-  await page.getByRole('button', { name: 'Trends' }).click();
-  await expect(page.getByRole('heading', { name: 'See who’s finding their range' })).toBeVisible();
-  const chart = page.locator('[data-chart]').first();
-  await expect(chart.locator('.chart-axis')).toHaveCount(3);
-  const point = chart.locator('[data-chart-point]').first();
-  await point.hover();
-  await expect(chart.locator('[data-chart-tooltip]')).toBeVisible();
-  await expect(chart.locator('[data-chart-tooltip]')).toContainText('points');
-  await point.focus();
-  await expect(chart.locator('[data-chart-tooltip]')).toBeVisible();
+test('players view shows the monthly top three and external MapTap link', async ({ page }) => {
+  await page.getByRole('button', { name: 'Players' }).click();
+  await expect(page.getByRole('heading', { name: /leaderboard/ })).toBeVisible();
+  await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
+  await expect(page.getByRole('button', { name: 'Trends' })).toHaveCount(0);
   const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });
   await expect(mapTapLink).toHaveAttribute('href', 'https://maptap.gg');
   await expect(mapTapLink).toHaveAttribute('target', '_blank');
@@ -139,8 +138,24 @@ test('keeps all nine players directly visible without pagination', async ({ page
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'View Player 9 details' })).toBeVisible();
-  expect(await page.locator('[data-player]').count()).toBe(9);
   expect(await page.getByRole('combobox', { name: 'Select player for 30-day summary' }).locator('option').count()).toBe(9);
+  await page.getByRole('button', { name: 'Players' }).click();
+  expect(await page.locator('.player-list [data-player]').count()).toBe(9);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
+});
+
+test('monthly leaderboard handles movement and empty slots', async ({ page }) => {
+  const players = [
+    { id: 'amy', maptapUsername: 'Amy', displayName: 'Amy', history: [{ date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 700 }] },
+    { id: 'bob', maptapUsername: 'Bob', displayName: 'Bob', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 950 }] },
+    { id: 'empty', maptapUsername: 'Empty', displayName: 'Empty', history: [] }
+  ];
+  await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-07-02', globalPlayers: 1000, players } }));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Players' }).click();
+  await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
+  await expect(page.getByLabel('Moved up 1 place')).toBeVisible();
+  await expect(page.getByLabel('Moved down 1 place')).toBeVisible();
+  await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(1);
 });

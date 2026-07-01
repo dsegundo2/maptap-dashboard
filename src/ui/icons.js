@@ -11,7 +11,9 @@ const icons = {
   chevron: '<path d="m9 18 6-6-6-6"/>',
   'chevron-left': '<path d="m15 18-6-6 6-6"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
-  wifi: '<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01"/>'
+  wifi: '<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01"/>',
+  'arrow-up': '<path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/>',
+  'arrow-down': '<path d="M12 5v14M6.5 13.5 12 19l5.5-5.5"/>'
 };
 
 export function icon(name, size = 20) {

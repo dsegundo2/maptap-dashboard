@@ -15,6 +15,40 @@ export function scoreForDate(player, date) {
   return player.history?.find((game) => game.date === date)?.score ?? null;
 }
 
+function monthAverage(player, month, throughDate) {
+  const scores = (player.history || [])
+    .filter((game) => game.date.startsWith(month) && game.date <= throughDate && Number.isFinite(game.score))
+    .map((game) => game.score);
+  return scores.length ? { average: scores.reduce((sum, score) => sum + score, 0) / scores.length, gamesPlayed: scores.length } : null;
+}
+
+function rankMonthly(entries) {
+  return entries.toSorted((a, b) => b.average - a.average || b.displayName.localeCompare(a.displayName));
+}
+
+export function monthlyLeaderboard(data, throughDate = data.date) {
+  const month = throughDate.slice(0, 7);
+  const previousDate = addDays(throughDate, -1);
+  const current = rankMonthly(data.players.flatMap((player) => {
+    const summary = monthAverage(player, month, throughDate);
+    return summary ? [{ id: player.id, displayName: player.displayName, ...summary }] : [];
+  }));
+  const previous = previousDate.startsWith(month) ? rankMonthly(data.players.flatMap((player) => {
+    const summary = monthAverage(player, month, previousDate);
+    return summary ? [{ id: player.id, displayName: player.displayName, ...summary }] : [];
+  })) : [];
+  const previousRanks = new Map(previous.map((player, index) => [player.id, index + 1]));
+  return {
+    month,
+    label: new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(`${throughDate}T12:00:00Z`)),
+    players: current.slice(0, 3).map((player, index) => {
+      const rank = index + 1;
+      const previousRank = previousRanks.get(player.id);
+      return { ...player, rank, average: Math.round(player.average), movement: previousRank ? previousRank - rank : 0 };
+    })
+  };
+}
+
 export function addDays(date, amount) {
   const value = new Date(`${date}T12:00:00Z`);
   value.setUTCDate(value.getUTCDate() + amount);

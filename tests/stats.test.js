@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compactHistory, dashboardForDate, dateKey, enrichDashboard, globalStanding, leaderboardDateRange } from '../src/lib/stats.js';
+import { compactHistory, dashboardForDate, dateKey, enrichDashboard, globalStanding, leaderboardDateRange, monthlyLeaderboard } from '../src/lib/stats.js';
 
 describe('dateKey', () => {
   it('always returns an ISO date in the configured timezone', () => {
@@ -55,5 +55,28 @@ describe('historical leaderboard dates', () => {
     const partial = dashboardForDate(data, '2026-06-10');
     expect(partial.players.map((player) => [player.id, player.score, player.playedToday])).toEqual([['a', 900, true], ['b', null, false]]);
     expect(dashboardForDate(data, '2026-06-09').players.every((player) => !player.playedToday)).toBe(true);
+  });
+});
+
+describe('monthlyLeaderboard', () => {
+  it('uses calendar-month averages, reverse-alphabetical tiebreaks, and daily movement', () => {
+    const data = { date: '2026-07-02', players: [
+      { id: 'amy', displayName: 'Amy', history: [{ date: '2026-06-30', score: 1000 }, { date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 700 }] },
+      { id: 'bob', displayName: 'Bob', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 950 }] },
+      { id: 'zoe', displayName: 'Zoe', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 800 }] }
+    ] };
+
+    const result = monthlyLeaderboard(data);
+
+    expect(result.label).toBe('July');
+    expect(result.players.map((player) => [player.id, player.average, player.movement])).toEqual([
+      ['bob', 875, 2],
+      ['zoe', 800, 0],
+      ['amy', 800, -2]
+    ]);
+  });
+
+  it('returns no ranked players when the calendar month is empty', () => {
+    expect(monthlyLeaderboard({ date: '2026-07-01', players: [{ id: 'a', displayName: 'A', history: [{ date: '2026-06-30', score: 900 }] }] }).players).toEqual([]);
   });
 });

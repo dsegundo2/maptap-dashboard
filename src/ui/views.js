@@ -1,6 +1,7 @@
 import { icon } from './icons.js';
 import { escapeHtml, formatDate, formatScore } from './format.js';
 import { sparkline } from './charts.js';
+import { monthlyLeaderboard } from '../lib/stats.js';
 
 function rankMedal(index) {
   const tones = ['gold', 'silver', 'bronze'];
@@ -95,9 +96,21 @@ function playerCard(player) {
 export function playersView(data, selectedId) {
   const player = data.players.find((item) => item.id === selectedId);
   if (player) return playerDetail(player, data.date);
+  const monthly = monthlyLeaderboard(data);
+  const slots = Array.from({ length: 3 }, (_, index) => monthly.players[index] || null);
+  const playerList = data.players.toSorted((a, b) => (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
   return `<div class="view content-view" data-view="players">
-    <header class="players-heading"><h1>Players</h1></header>
-    <section class="player-list" aria-label="Players">${data.players.map(playerCard).join('')}</section>
+    <section class="monthly-leaderboard" aria-labelledby="monthly-leaderboard-title">
+      <header><div><h1 id="monthly-leaderboard-title">${monthly.label} leaderboard</h1><p>Ranked by monthly average</p></div><span>Top 3</span></header>
+      <div class="monthly-ranks">${slots.map((entry, index) => entry ? `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="View ${escapeHtml(entry.displayName)} details, ranked ${index + 1}">
+        <span class="monthly-rank-number">${index + 1}</span>
+        <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'}</small></span>
+        <span class="monthly-average"><strong>${formatScore(entry.average)}</strong><small>average</small></span>
+        ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No change">—</span>'}
+      </button>` : `<div class="monthly-rank-row is-empty" aria-label="Rank ${index + 1} empty"><span class="monthly-rank-number">${index + 1}</span><span class="monthly-player">—</span><span class="monthly-average">—</span><span class="monthly-movement neutral">—</span></div>`).join('')}</div>
+    </section>
+    <header class="players-heading"><div><h1>Players</h1><p>${data.players.length} total</p></div></header>
+    <section class="player-list" aria-label="Players">${playerList.map(playerCard).join('')}</section>
   </div>`;
 }
 
@@ -112,12 +125,5 @@ function playerDetail(player, date) {
       <div><span>Games</span><strong>${summary.gamesPlayed}</strong></div><div><span>Days missed</span><strong>${summary.daysMissed}</strong></div>
     </section>
     <section class="chart-card player-score-trail"><div class="section-heading"><div><h2>Score trail</h2><p>Hover or focus any day to see its score</p></div></div>${sparkline(player.history, { label: `${player.displayName} score history`, height: 142 })}</section>
-  </div>`;
-}
-
-export function trendsView(data) {
-  return `<div class="view content-view" data-view="trends">
-    <header class="page-intro"><p>Trends</p><h1>See who’s finding their range</h1><span>Thirty-day score trails for every player.</span></header>
-    <div class="trend-stack">${data.players.map((player) => `<section class="chart-card"><div class="trend-title"><div><strong>${escapeHtml(player.displayName)}</strong><small>${formatScore(player.summary.average)} average</small></div><span class="trend-score">${formatScore(player.score)}</span></div>${sparkline(player.history, { label: `${player.displayName} score history`, height: 86 })}</section>`).join('')}</div>
   </div>`;
 }

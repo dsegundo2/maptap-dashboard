@@ -44,7 +44,7 @@ export async function fetchLiveDashboard() {
     if (users.length > 1) await new Promise((resolve) => setTimeout(resolve, 650));
   }
   const leaderboard = await leaderboardPromise;
-  const players = profiles.map(({ config: user, profile }) => {
+  const players = profiles.map(({ config: user, profile }, index) => {
     if (!profile) {
       return {
         id: `configured:${user.maptapUsername}`,
@@ -54,6 +54,7 @@ export async function fetchLiveDashboard() {
         playedToday: false,
         globalRank: null,
         globalPercentile: null,
+        displayOrder: index,
         history: []
       };
     }
@@ -69,6 +70,7 @@ export async function fetchLiveDashboard() {
       playedToday: Number.isFinite(score),
       globalRank: standing.rank,
       globalPercentile: standing.percentile,
+      displayOrder: index,
       history
     };
   });
@@ -76,8 +78,10 @@ export async function fetchLiveDashboard() {
 }
 
 export async function fetchStaticDashboard() {
-  const [data, config] = await Promise.all([jsonFetch(asset('data/scores.json')), jsonFetch(asset('data/config.json'))]);
-  return enrichDashboard(data, config.competitionWindowDays);
+  const [data, config, playerRegistry] = await Promise.all([jsonFetch(asset('data/scores.json')), jsonFetch(asset('data/config.json')), jsonFetch(asset('data/players.json'))]);
+  const order = new Map(enabledPlayers(playerRegistry).map((player, index) => [player.maptapUsername, index]));
+  const players = data.players.map((player) => ({ ...player, displayOrder: order.get(player.maptapUsername) ?? Number.MAX_SAFE_INTEGER }));
+  return enrichDashboard({ ...data, players }, config.competitionWindowDays);
 }
 
 export async function fetchStandingsForDate(date, players) {
