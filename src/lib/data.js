@@ -79,9 +79,10 @@ export async function fetchLiveDashboard() {
 
 export async function fetchStaticDashboard() {
   const [data, config, playerRegistry] = await Promise.all([jsonFetch(asset('data/scores.json')), jsonFetch(asset('data/config.json')), jsonFetch(asset('data/players.json'))]);
-  const order = new Map(enabledPlayers(playerRegistry).map((player, index) => [player.maptapUsername, index]));
+  const configuredPlayers = enabledPlayers(playerRegistry);
+  const order = new Map(configuredPlayers.map((player, index) => [player.maptapUsername, index]));
   const players = data.players.map((player) => ({ ...player, displayOrder: order.get(player.maptapUsername) ?? Number.MAX_SAFE_INTEGER }));
-  return enrichDashboard({ ...data, players }, config.competitionWindowDays);
+  return { ...enrichDashboard({ ...data, players }, config.competitionWindowDays), configuredPlayers };
 }
 
 export async function fetchStandingsForDate(date, players) {
@@ -101,10 +102,16 @@ export async function fetchStandingsForDate(date, players) {
   }
 }
 
-export function readCache() {
+function rosterKey(players = []) {
+  return players.map((player) => player.maptapUsername).filter(Boolean).toSorted().join('\n');
+}
+
+export function readCache(expectedPlayers) {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
-    return cached?.savedAt && Date.now() - cached.savedAt < CACHE_TTL ? cached.data : null;
+    if (!cached?.savedAt || Date.now() - cached.savedAt >= CACHE_TTL) return null;
+    if (expectedPlayers && rosterKey(cached.data?.players) !== rosterKey(expectedPlayers)) return null;
+    return cached.data;
   } catch {
     return null;
   }

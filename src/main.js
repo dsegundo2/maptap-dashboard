@@ -246,16 +246,16 @@ app.addEventListener('change', (event) => {
 });
 
 async function init() {
-  const cached = readCache();
-  if (cached) {
-    state.data = cached;
+  try {
+    const snapshot = await fetchStaticDashboard();
+    state.data = readCache(snapshot.configuredPlayers) || snapshot;
     state.loading = false;
-  } else {
-    try {
-      state.data = await fetchStaticDashboard();
+  } catch (error) {
+    console.warn('Static snapshot unavailable.', error);
+    const cached = readCache();
+    if (cached) {
+      state.data = cached;
       state.loading = false;
-    } catch (error) {
-      console.warn('Static snapshot unavailable.', error);
     }
   }
   render();

@@ -122,6 +122,7 @@ test('renders a clear empty state when no one has a score', async ({ page }) => 
     history: [{ date: '2026-06-29', score: 900 - index }]
   }));
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-06-29', globalPlayers: 1000, players } }));
+  await page.route('**/data/players.json', (route) => route.fulfill({ json: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) }));
   await page.goto('/?date=2026-06-01');
   await expect(page.getByRole('heading', { name: 'No scores yet' })).toBeVisible();
   await expect(page.getByText('No one in the group played.')).toBeVisible();
@@ -158,6 +159,7 @@ test('monthly leaderboard handles movement and empty slots', async ({ page }) =>
     { id: 'empty', maptapUsername: 'Empty', displayName: 'Empty', history: [] }
   ];
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-07-02', globalPlayers: 1000, players } }));
+  await page.route('**/data/players.json', (route) => route.fulfill({ json: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) }));
   await page.goto('/');
   await page.getByRole('button', { name: 'Players' }).click();
   await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
