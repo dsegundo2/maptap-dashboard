@@ -91,16 +91,18 @@ test('navigates previous and next leaderboard days', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Jump to today' })).toBeDisabled();
 });
 
-test('calendar selects the June 1 lower bound with one completed score', async ({ page }) => {
+test('calendar selects the rolling lower bound with one completed score', async ({ page }) => {
+  const rollingMinimum = addDays(scoreSnapshot.date, -29);
+  const minimumDate = rollingMinimum > '2026-06-01' ? rollingMinimum : '2026-06-01';
+  const minimumLabel = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${minimumDate}T12:00:00Z`));
   await page.getByRole('button', { name: 'Choose leaderboard date' }).click();
   await expect(page.getByRole('dialog', { name: 'Choose a day' })).toBeVisible();
-  await page.getByRole('button', { name: 'June 1, 2026' }).click();
-  const juneFirst = '2026-06-01';
-  const scoredPlayers = playerRegistry.filter((player) => Number.isFinite(scoreOn(player, juneFirst)));
-  const leader = scoredPlayers.toSorted((a, b) => scoreOn(b, juneFirst) - scoreOn(a, juneFirst))[0];
+  await page.getByRole('button', { name: minimumLabel }).click();
+  const scoredPlayers = playerRegistry.filter((player) => Number.isFinite(scoreOn(player, minimumDate)));
+  const leader = scoredPlayers.toSorted((a, b) => scoreOn(b, minimumDate) - scoreOn(a, minimumDate))[0];
   await expect(page.getByRole('heading', { name: leader.displayName, exact: true })).toBeVisible();
   for (const player of playerRegistry) {
-    const score = scoreOn(player, juneFirst);
+    const score = scoreOn(player, minimumDate);
     await expect(page.getByRole('button', { name: `View ${player.displayName} details` })).toContainText(Number.isFinite(score) ? score.toLocaleString() : 'Not yet');
   }
   await expect(page.getByRole('button', { name: 'Previous day' })).toBeDisabled();
