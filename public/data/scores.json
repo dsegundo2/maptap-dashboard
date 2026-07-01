@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-07-01T21:23:17.598Z",
+  "generatedAt": "2026-07-01T21:34:52.124Z",
   "date": "2026-07-01",
-  "globalPlayers": 240738,
+  "globalPlayers": 242810,
   "groups": {
     "HB": {
       "name": "HB",
@@ -12,7 +12,7 @@
           "displayName": "Diego Tomas",
           "score": 735,
           "playedToday": true,
-          "globalRank": 193128,
+          "globalRank": 194790,
           "globalPercentile": 19,
           "displayOrder": 1,
           "history": [
@@ -425,7 +425,7 @@
           "displayName": "Eo2",
           "score": 780,
           "playedToday": true,
-          "globalRank": 157558,
+          "globalRank": 158914,
           "globalPercentile": 34,
           "displayOrder": 1,
           "history": [
@@ -478,10 +478,10 @@
         {
           "id": "Q2bcCy2WqefdzweL7JpVuj7Y7Df2",
           "maptapUsername": "DiegoT",
-          "displayName": "Diego Tomas",
+          "displayName": "Diggs",
           "score": 735,
           "playedToday": true,
-          "globalRank": 193128,
+          "globalRank": 194790,
           "globalPercentile": 19,
           "displayOrder": 0,
           "history": [
@@ -725,7 +725,7 @@
       "displayName": "Diego Tomas",
       "score": 735,
       "playedToday": true,
-      "globalRank": 193128,
+      "globalRank": 194790,
       "globalPercentile": 19,
       "displayOrder": 1,
       "history": [

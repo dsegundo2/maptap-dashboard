@@ -184,7 +184,7 @@ test('group URLs load independent rosters', async ({ page }) => {
 
   await page.goto(`${routeBase}/SB`);
   await expect(page.locator('.brand')).toContainText('SB');
-  await expect(page.getByRole('button', { name: 'View Diego Tomas details', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View Diggs details', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'View Eo2 details', exact: true })).toBeVisible();
   await expect(page.getByText('Diego Dad', { exact: true })).toHaveCount(0);
 });
