@@ -64,7 +64,7 @@ export function todayView(data, options = {}) {
         <button type="button" data-action="next-day" aria-label="Next day" ${data.date >= maximumDate ? 'disabled' : ''}>${icon('chevron', 18)}</button>
         <button class="today-shortcut" type="button" data-action="jump-today" aria-label="Jump to today" ${isToday ? 'disabled' : ''}>Today</button>
       </div>
-      <div class="leader-labels" aria-hidden="true"><span>Rank</span><span>Player</span><span>Score</span><span>Global</span><span>Status</span></div>
+      <div class="leader-labels" aria-hidden="true"><span>Rank</span><span>Player</span><span>Score</span><span>Percentile</span><span>Status</span></div>
       <div class="leader-list">${data.players.map(playerRow).join('')}</div>
       <p class="list-note"><span class="status-dot"></span>${data.players.length - notPlayed} played ${isToday ? 'today' : 'on this day'} <span>·</span> ${notPlayed} ${isToday ? 'still exploring' : 'did not play'}</p>
     </section>
@@ -105,13 +105,13 @@ function playerDetail(player, date) {
   const summary = player.summary;
   return `<div class="view content-view" data-view="players">
     <button class="back-action" type="button" data-action="back-players">← All players</button>
-    <header class="profile-head"><span class="avatar large">${escapeHtml(player.displayName.slice(0, 1).toUpperCase())}</span><div><p>Player detail</p><h1>${escapeHtml(player.displayName)}</h1><span>${player.playedToday ? `${formatScore(player.score)} on ${formatDate(date, { year: undefined })}` : 'Not played today'}</span></div></header>
+    <header class="profile-head"><div><p>Player detail</p><h1>${escapeHtml(player.displayName)}</h1><span>${player.playedToday ? `${formatScore(player.score)} on ${formatDate(date, { year: undefined })}` : 'Not played today'}</span></div></header>
     <section class="metric-grid" aria-label="30 day statistics">
       <div><span>Average</span><strong>${formatScore(summary.average)}</strong></div><div><span>Best</span><strong>${formatScore(summary.best)}</strong></div>
       <div><span>Wins</span><strong>${summary.wins}</strong></div><div><span>Longest streak</span><strong>${summary.longestWinStreak}</strong></div>
       <div><span>Games</span><strong>${summary.gamesPlayed}</strong></div><div><span>Days missed</span><strong>${summary.daysMissed}</strong></div>
     </section>
-    <section class="chart-card"><div class="section-heading"><div><h2>Score trail</h2><p>Last 30 recorded games</p></div></div>${sparkline(player.history, { label: `${player.displayName} score history` })}</section>
+    <section class="chart-card player-score-trail"><div class="section-heading"><div><h2>Score trail</h2><p>Hover or focus any day to see its score</p></div></div>${sparkline(player.history, { label: `${player.displayName} score history`, height: 142 })}</section>
   </div>`;
 }
 

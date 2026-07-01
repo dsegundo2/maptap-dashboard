@@ -37,7 +37,9 @@ export function sparkline(history = [], { width = 320, height = 112, label = 'Sc
       <polyline points="${polyline}" fill="none" stroke="#315c42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       ${points.map((point, index) => {
         const pointLabel = `${formatDate(point.date, { month: 'long' })}: ${formatScore(point.score)} points`;
-        return `<g class="chart-point ${index === points.length - 1 ? 'is-latest' : ''}" data-chart-point data-date="${escapeHtml(point.date)}" data-score="${point.score}" tabindex="0" role="img" aria-label="${escapeHtml(pointLabel)}"><title>${escapeHtml(pointLabel)}</title><circle class="chart-point-dot" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3.5"/><circle class="chart-point-hit" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="11"/></g>`;
+        const hitLeft = index === 0 ? plot.left : (points[index - 1].x + point.x) / 2;
+        const hitRight = index === points.length - 1 ? plot.right : (point.x + points[index + 1].x) / 2;
+        return `<g class="chart-point ${index === points.length - 1 ? 'is-latest' : ''}" data-chart-point data-date="${escapeHtml(point.date)}" data-score="${point.score}" tabindex="0" role="img" aria-label="${escapeHtml(pointLabel)}"><title>${escapeHtml(pointLabel)}</title><rect class="chart-point-hit" x="${hitLeft.toFixed(1)}" y="${plot.top}" width="${(hitRight - hitLeft).toFixed(1)}" height="${plot.bottom - plot.top}"/><circle class="chart-point-dot" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3.5"/></g>`;
       }).join('')}
     </svg>
     <figcaption><span>${values[0].date.slice(5).replace('-', '/')}</span><strong>${formatScore(last.score)} latest</strong><span>${last.date.slice(5).replace('-', '/')}</span></figcaption>

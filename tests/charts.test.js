@@ -13,6 +13,7 @@ describe('sparkline', () => {
 
     expect(chart.match(/class="chart-axis"/g)).toHaveLength(3);
     expect(chart.match(/data-chart-point/g)).toHaveLength(history.length);
+    expect(chart.match(/class="chart-point-hit"/g)).toHaveLength(history.length);
     expect(chart).toContain('June 29, 2026: 910 points');
     expect(chart).toContain('data-chart-tooltip');
   });

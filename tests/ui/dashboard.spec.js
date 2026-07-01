@@ -22,9 +22,18 @@ test.beforeEach(async ({ page }) => {
 test('loads the fallback leaderboard and navigates through player details', async ({ page }) => {
   await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toBeVisible();
   await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toBeVisible();
+  await expect(page.locator('.leader-labels')).toContainText('Percentile');
   await page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` }).click();
   await expect(page.getByRole('heading', { name: temporaryPlayer.displayName, exact: true })).toBeVisible();
   await expect(page.getByText('Score trail')).toBeVisible();
+  await expect(page.locator('.profile-head .avatar')).toHaveCount(0);
+  const scoreTrail = page.locator('.player-score-trail');
+  await expect(scoreTrail.locator('.chart-axis')).toHaveCount(3);
+  const trailPoints = scoreTrail.locator('[data-chart-point]');
+  expect(await trailPoints.count()).toBeGreaterThan(1);
+  await trailPoints.first().hover();
+  await expect(scoreTrail.locator('[data-chart-tooltip]')).toBeVisible();
+  await expect(scoreTrail.locator('[data-chart-tooltip]')).toContainText('points');
   await page.getByRole('button', { name: 'All players' }).click();
   await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
 });
@@ -47,8 +56,22 @@ test('bottom navigation exposes trends and the external MapTap link', async ({ p
 
 test('mobile leaderboard has no horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.app-header')).toHaveCSS('position', 'relative');
+  await expect(page.locator('.bottom-nav')).toHaveCSS('position', 'fixed');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
+});
+
+test('desktop uses a persistent side rail instead of mobile app navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await expect(page.locator('.app-header')).toHaveCSS('position', 'relative');
+  await expect(page.locator('.bottom-nav')).toHaveCSS('position', 'static');
+  const layout = await page.evaluate(() => {
+    const navigation = document.querySelector('.bottom-nav').getBoundingClientRect();
+    const content = document.querySelector('#main-content').getBoundingClientRect();
+    return { navigationRight: navigation.right, contentLeft: content.left };
+  });
+  expect(layout.navigationRight).toBeLessThan(layout.contentLeft);
 });
 
 test('navigates previous and next leaderboard days', async ({ page }) => {
