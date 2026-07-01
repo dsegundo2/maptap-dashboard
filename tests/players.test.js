@@ -5,6 +5,13 @@ import { readCache } from '../src/lib/data.js';
 import { enabledGroups, resolveGroup } from '../src/lib/groups.js';
 
 describe('player registry', () => {
+  it('supports one-line username-to-display-name entries', () => {
+    expect(enabledPlayers({ DiegoT: 'Diggs', Eo2: 'Eo2' })).toEqual([
+      { maptapUsername: 'DiegoT', displayName: 'Diggs' },
+      { maptapUsername: 'Eo2', displayName: 'Eo2' }
+    ]);
+  });
+
   it('keeps HB and SB rosters independent', () => {
     const players = resolveGroup(groupRegistry, 'HB').players;
     expect(players).toContainEqual(expect.objectContaining({ maptapUsername: 'Diego Dad', displayName: 'Diego Dad' }));

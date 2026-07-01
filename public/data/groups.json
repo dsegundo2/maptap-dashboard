@@ -3,34 +3,17 @@
   "groups": {
     "HB": {
       "name": "HB",
-      "players": [
-        {
-          "maptapUsername": "Diego Dad",
-          "displayName": "Diego Dad",
-          "enabled": true
-        },
-        {
-          "maptapUsername": "DiegoT",
-          "displayName": "Diego Tomas",
-          "enabled": true
-        }
-      ]
+      "players": {
+        "Diego Dad": "Diego Dad",
+        "DiegoT": "Diego Tomas"
+      }
     },
     "SB": {
       "name": "SB",
-      "players": [
-        {
-          "maptapUsername": "DiegoT",
-          "displayName": "Diggs",
-          "enabled": true
-        },
-        {
-          "maptapUsername": "Eo2",
-          "displayName": "Eo2",
-          "enabled": true,
-          "temporary": true
-        }
-      ]
+      "players": {
+        "DiegoT": "Diggs",
+        "Eo2": "Eo2"
+      }
     }
   }
 }

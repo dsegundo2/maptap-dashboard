@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
 import groupRegistry from '../../public/data/groups.json' with { type: 'json' };
 import scoreSnapshot from '../../public/data/scores.json' with { type: 'json' };
+import { enabledPlayers } from '../../src/lib/players.js';
 
-const playerRegistry = groupRegistry.groups.HB.players;
+const playerRegistry = enabledPlayers(groupRegistry.groups.HB.players);
 const [temporaryPlayer, primaryPlayer] = playerRegistry;
 const addDays = (date, amount) => {
   const value = new Date(`${date}T12:00:00Z`);

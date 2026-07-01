@@ -1,8 +1,13 @@
 export function enabledPlayers(registry) {
-  if (!Array.isArray(registry)) throw new Error('Player registry must be a JSON array.');
-  if (registry.length > 10) throw new Error('Player registry supports a maximum of 10 entries.');
+  const players = Array.isArray(registry)
+    ? registry
+    : registry && typeof registry === 'object'
+      ? Object.entries(registry).map(([maptapUsername, displayName]) => ({ maptapUsername, displayName }))
+      : null;
+  if (!players) throw new Error('Player registry must be a JSON object or array.');
+  if (players.length > 10) throw new Error('Player registry supports a maximum of 10 entries.');
   const usernames = new Set();
-  for (const [index, player] of registry.entries()) {
+  for (const [index, player] of players.entries()) {
     if (!player || typeof player.maptapUsername !== 'string' || !player.maptapUsername.trim()) {
       throw new Error(`Player ${index + 1} needs a maptapUsername.`);
     }
@@ -13,5 +18,5 @@ export function enabledPlayers(registry) {
     if (usernames.has(key)) throw new Error(`Duplicate MapTap username: ${player.maptapUsername}`);
     usernames.add(key);
   }
-  return registry.filter((player) => player.enabled !== false);
+  return players.filter((player) => player.enabled !== false);
 }

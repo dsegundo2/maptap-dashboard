@@ -23,23 +23,19 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
   "groups": {
     "HB": {
       "name": "HB",
-      "players": [
-        {
-          "maptapUsername": "PublicMapTapNickname",
-          "displayName": "Dashboard name",
-          "enabled": true
-        }
-      ]
+      "players": {
+        "PublicMapTapNickname": "Dashboard name"
+      }
     }
   }
 }
 ```
 
-- `maptapUsername` must exactly match the public MapTap nickname.
+- Each player is one line: `"MapTap username": "Dashboard display name"`.
+- Add a line to add someone; delete that line to remove them.
+- The username on the left must exactly match the public MapTap nickname.
 - Profile URLs replace spaces with underscores. For a URL such as `https://maptap.gg/u/Diego_Dad`, use the visible profile name (`Diego Dad`) as `maptapUsername`, not the underscored URL slug.
-- `displayName` is the label shown throughout the dashboard.
-- Set `enabled` to `false` to temporarily hide a player, or remove the object permanently.
-- `temporary` is optional metadata for entries that will be removed later.
+- The display name on the right is the label shown throughout the dashboard.
 
 Each roster is validated for required fields, duplicates, and the 10-player limit. [`public/data/scores.json`](public/data/scores.json) is generated for every group and should not be edited manually. Shared users are fetched once and reused across groups. Requests are deliberately spaced by 650 ms between unique players.
 
