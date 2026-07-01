@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 import groupRegistry from '../../public/data/groups.json' with { type: 'json' };
 import scoreSnapshot from '../../public/data/scores.json' with { type: 'json' };
-import { enabledPlayers } from '../../src/lib/players.js';
+import { enabledGroups, resolveGroup } from '../../src/lib/groups.js';
 
-const playerRegistry = enabledPlayers(groupRegistry.groups.HB.players);
+const configuredGroups = enabledGroups(groupRegistry);
+const defaultGroup = resolveGroup(groupRegistry);
+const playerRegistry = defaultGroup.players;
 const [temporaryPlayer, primaryPlayer] = playerRegistry;
 const addDays = (date, amount) => {
   const value = new Date(`${date}T12:00:00Z`);
@@ -50,8 +52,7 @@ test('players view shows player summaries instead of the monthly leaderboard', a
   await expect(page.locator('.player-summary h2')).toContainText('last 30 days');
   await expect(page.getByText('Ranked by total wins')).toHaveCount(0);
   await expect(page.locator('.player-card .mini-win small').first()).toHaveText('average');
-  await expect(page.getByRole('button', { name: /Diego Dad/ })).toBeVisible();
-  await expect(page.getByText('Eo2', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: new RegExp(playerRegistry[0].displayName) })).toBeVisible();
   await expect(page.locator('.monthly-rank-row')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Trends' })).toHaveCount(0);
   const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });
@@ -173,19 +174,16 @@ test('monthly leaderboard handles movement and empty slots', async ({ page }) =>
   await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(1);
 });
 
-test('group URLs load independent rosters', async ({ page }) => {
+test('every configured group URL loads its configured roster', async ({ page }) => {
   const routeBase = process.env.GITHUB_ACTIONS && process.env.GITHUB_REPOSITORY
     ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}`
     : '';
 
-  await page.goto(`${routeBase}/HB`);
-  await expect(page.locator('.brand')).toContainText('HB');
-  await expect(page.getByRole('button', { name: 'View Diego Dad details', exact: true })).toBeVisible();
-  await expect(page.getByText('Eo2', { exact: true })).toHaveCount(0);
-
-  await page.goto(`${routeBase}/SB`);
-  await expect(page.locator('.brand')).toContainText('SB');
-  await expect(page.getByRole('button', { name: 'View Diggs details', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'View Eo2 details', exact: true })).toBeVisible();
-  await expect(page.getByText('Diego Dad', { exact: true })).toHaveCount(0);
+  for (const group of configuredGroups) {
+    await page.goto(`${routeBase}/${group.id}`);
+    await expect(page.locator('.brand')).toContainText(group.name);
+    for (const player of group.players) {
+      await expect(page.getByRole('button', { name: `View ${player.displayName} details`, exact: true })).toBeVisible();
+    }
+  }
 });

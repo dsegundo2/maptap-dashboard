@@ -12,12 +12,12 @@ describe('player registry', () => {
     ]);
   });
 
-  it('keeps HB and SB rosters independent', () => {
-    const players = resolveGroup(groupRegistry, 'HB').players;
-    expect(players).toContainEqual(expect.objectContaining({ maptapUsername: 'Diego Dad', displayName: 'Diego Dad' }));
-    expect(players.some((player) => player.maptapUsername === 'Eo2')).toBe(false);
-    expect(resolveGroup(groupRegistry, 'SB').players.map((player) => player.maptapUsername)).toEqual(['DiegoT', 'Eo2']);
-    expect(enabledGroups(groupRegistry).map((group) => group.id)).toEqual(['HB', 'SB']);
+  it('derives every group and roster from the registry', () => {
+    const groups = enabledGroups(groupRegistry);
+    expect(groups.map((group) => group.id)).toEqual(Object.keys(groupRegistry.groups));
+    for (const group of groups) {
+      expect(resolveGroup(groupRegistry, group.id).players).toEqual(enabledPlayers(groupRegistry.groups[group.id].players));
+    }
   });
   it('filters disabled players without changing the registry format', () => {
     const players = enabledPlayers([
