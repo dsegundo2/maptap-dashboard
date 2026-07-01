@@ -23,13 +23,18 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
 });
 
-test('loads the fallback leaderboard and navigates through player details', async ({ page }) => {
-  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details`, exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details`, exact: true })).toBeVisible();
+test('selects a Today player on the Players tab without a detail page', async ({ page }) => {
+  const dailyList = page.locator('.leader-list');
+  await expect(dailyList.getByRole('button', { name: `Select ${temporaryPlayer.displayName} on the Players tab`, exact: true })).toBeVisible();
+  await expect(dailyList.getByRole('button', { name: `Select ${primaryPlayer.displayName} on the Players tab`, exact: true })).toBeVisible();
   await expect(page.locator('.leader-labels')).toContainText('Percentile');
-  await page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details`, exact: true }).click();
-  await expect(page.getByRole('heading', { name: temporaryPlayer.displayName, exact: true })).toBeVisible();
-  await expect(page.getByText('Score trail')).toBeVisible();
+  await page.getByRole('button', { name: `Select daily leader ${primaryPlayer.displayName} on the Players tab`, exact: true }).click();
+  await expect(page.getByRole('button', { name: `Show ${primaryPlayer.displayName}’s 30-day stats`, exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  await dailyList.getByRole('button', { name: `Select ${temporaryPlayer.displayName} on the Players tab`, exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
+  await expect(page.locator('#summary-title')).toContainText(temporaryPlayer.displayName);
+  await expect(page.getByRole('button', { name: `Show ${temporaryPlayer.displayName}’s 30-day stats`, exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.profile-head .avatar')).toHaveCount(0);
   const scoreTrail = page.locator('.player-score-trail');
   await expect(scoreTrail.locator('.chart-axis')).toHaveCount(3);
@@ -43,15 +48,15 @@ test('loads the fallback leaderboard and navigates through player details', asyn
   await expect(scoreTrail.locator('polyline')).toHaveAttribute('points', geometryBeforeClick);
   await expect(scoreTrail.locator('svg')).toHaveCount(1);
   await expect(page.locator('.view')).toHaveCSS('animation-name', 'none');
-  await page.getByRole('button', { name: 'All players' }).click();
-  await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'All players' })).toHaveCount(0);
 });
 
 test('players view shows player summaries instead of the monthly leaderboard', async ({ page }) => {
-  await page.getByRole('button', { name: 'Players' }).click();
-  await expect(page.locator('.player-summary h2')).toContainText('last 30 days');
+  await page.getByRole('button', { name: 'Players', exact: true }).click();
+  await expect(page.locator('#summary-title')).toContainText('last 30 days');
   await expect(page.getByText('Ranked by total wins')).toHaveCount(0);
-  await expect(page.locator('.player-card .mini-win small').first()).toHaveText('average');
+  await expect(page.locator('.player-card .mini-win small').first()).toHaveText('30-day avg');
+  await expect(page.locator('.player-card .avatar').first()).toHaveText('DD');
   await expect(page.getByRole('button', { name: new RegExp(playerRegistry[0].displayName) })).toBeVisible();
   await expect(page.locator('.monthly-rank-row')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Trends' })).toHaveCount(0);
@@ -90,7 +95,7 @@ test('navigates previous and next leaderboard days', async ({ page }) => {
   await expect(page.locator('.location-list li')).toHaveCount(5);
   await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText(shortDate(previousDate));
   for (const player of playerRegistry) {
-    const row = page.getByRole('button', { name: `View ${player.displayName} details`, exact: true });
+    const row = page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true });
     await expect(row).toContainText(Number.isFinite(scoreOn(player, previousDate)) ? 'Played' : 'Not yet');
   }
   await expect(page.getByRole('button', { name: 'Jump to today' })).toBeEnabled();
@@ -112,7 +117,7 @@ test('calendar selects the rolling lower bound with one completed score', async 
   await expect(page.getByRole('heading', { name: leader.displayName, exact: true })).toBeVisible();
   for (const player of playerRegistry) {
     const score = scoreOn(player, minimumDate);
-    await expect(page.getByRole('button', { name: `View ${player.displayName} details`, exact: true })).toContainText(Number.isFinite(score) ? score.toLocaleString() : 'Not yet');
+    await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toContainText(Number.isFinite(score) ? score.toLocaleString() : 'Not yet');
   }
   await expect(page.getByRole('button', { name: 'Previous day' })).toBeDisabled();
 });
@@ -151,9 +156,9 @@ test('keeps all nine players directly visible without pagination', async ({ page
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'View Player 9 details' })).toBeVisible();
-  await page.getByRole('button', { name: 'Players' }).click();
-  expect(await page.getByRole('combobox', { name: 'Select player for 30-day summary' }).locator('option').count()).toBe(9);
+  await expect(page.getByRole('button', { name: 'Select Player 9 on the Players tab' })).toBeVisible();
+  await page.getByRole('button', { name: 'Players', exact: true }).click();
+  await expect(page.getByRole('combobox', { name: 'Select player for 30-day summary' })).toHaveCount(0);
   expect(await page.locator('.player-list [data-player]').count()).toBe(9);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
@@ -183,7 +188,7 @@ test('every configured group URL loads its configured roster', async ({ page }) 
     await page.goto(`${routeBase}/${group.id}`);
     await expect(page.locator('.brand')).toContainText(group.name);
     for (const player of group.players) {
-      await expect(page.getByRole('button', { name: `View ${player.displayName} details`, exact: true })).toBeVisible();
+      await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toBeVisible();
     }
   }
 });

@@ -8,9 +8,14 @@ function rankMedal(index) {
   return `<span class="rank ${tones[index] || ''}">${index + 1}</span>`;
 }
 
+function playerInitials(name) {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  return (parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : parts[0]?.slice(0, 2) || '?').toUpperCase();
+}
+
 function playerRow(player, index) {
   const standing = Number.isFinite(player.globalPercentile) ? `${player.globalPercentile.toFixed(1)}%` : '—';
-  return `<button class="leader-row" type="button" data-player="${escapeHtml(player.id)}" aria-label="View ${escapeHtml(player.displayName)} details">
+  return `<button class="leader-row" type="button" data-player="${escapeHtml(player.id)}" aria-label="Select ${escapeHtml(player.displayName)} on the Players tab">
     ${rankMedal(index)}
     <span class="leader-name">${escapeHtml(player.displayName)}</span>
     <strong class="leader-score">${formatScore(player.score)}</strong>
@@ -64,16 +69,18 @@ function locationTrail(date, locations = []) {
 function playerSummary(data, spotlightId) {
   const leader = data.players.find((player) => player.playedToday);
   const spotlight = data.players.find((player) => player.id === spotlightId) || leader || data.players[0];
-  return `<section class="summary-section player-summary" aria-labelledby="summary-title">
-    <div class="summary-heading"><h2 id="summary-title">${spotlight ? `${escapeHtml(spotlight.displayName)}’s last 30 days` : 'Last 30 days'}</h2><label class="player-select"><span>Player</span><select data-summary-select aria-label="Select player for 30-day summary">${data.players.map((player) => `<option value="${escapeHtml(player.id)}" ${player.id === spotlight?.id ? 'selected' : ''}>${escapeHtml(player.displayName)}</option>`).join('')}</select></label></div>
+  if (!spotlight) return '';
+  return `<section id="player-insights" class="summary-section player-summary" aria-labelledby="summary-title" aria-live="polite">
+    <div class="summary-heading"><div><p>Selected player</p><h2 id="summary-title">${escapeHtml(spotlight.displayName)}’s last 30 days</h2></div></div>
     <div class="summary-grid">
       <div><span>Daily wins</span><strong>${spotlight?.summary.wins ?? 0}</strong><small>in the group</small></div>
       <div><span>Best streak</span><strong>${spotlight?.summary.longestWinStreak ?? 0}</strong><small>days</small></div>
-      <div><span>Average</span><strong>${formatScore(spotlight?.summary.average)}</strong><small>points</small></div>
+      <div><span>30-day average</span><strong>${formatScore(spotlight?.summary.average)}</strong><small>points</small></div>
       <div><span>Best score</span><strong>${formatScore(spotlight?.summary.best)}</strong><small>points</small></div>
       <div><span>Games</span><strong>${spotlight?.summary.gamesPlayed ?? 0}</strong><small>played</small></div>
       <div><span>Days missed</span><strong>${spotlight?.summary.daysMissed ?? 30}</strong><small>of 30</small></div>
     </div>
+    <section class="chart-card player-score-trail"><div class="section-heading"><div><h2>${escapeHtml(spotlight.displayName)}’s score trail</h2><p>Last 30 days · hover or focus any day to see its score</p></div></div>${sparkline(spotlight.history, { label: `${spotlight.displayName} score history`, height: 142 })}</section>
   </section>`;
 }
 
@@ -82,12 +89,12 @@ function monthlyBoard(data, className = '') {
   const slots = Array.from({ length: 3 }, (_, index) => monthly.players[index] || null);
   return `<section class="monthly-leaderboard ${className}" aria-labelledby="monthly-leaderboard-title">
     <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div><span>Top 3</span></header>
-    <div class="monthly-ranks">${slots.map((entry, index) => entry ? `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="View ${escapeHtml(entry.displayName)} details, ranked ${index + 1}">
-      <span class="monthly-rank-number">${index + 1}</span>
+    <div class="monthly-ranks">${slots.map((entry, index) => entry ? `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${index + 1}">
+      ${rankMedal(index)}
       <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
       <span class="monthly-average"><strong>${entry.wins}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
       ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
-    </button>` : `<div class="monthly-rank-row is-empty" aria-label="Rank ${index + 1} empty"><span class="monthly-rank-number">${index + 1}</span><span class="monthly-player">—</span><span class="monthly-average">—</span><span class="monthly-movement neutral">—</span></div>`).join('')}</div>
+    </button>` : `<div class="monthly-rank-row is-empty" aria-label="Rank ${index + 1} empty">${rankMedal(index)}<span class="monthly-player">—</span><span class="monthly-average">—</span><span class="monthly-movement neutral">—</span></div>`).join('')}</div>
   </section>`;
 }
 
@@ -99,10 +106,10 @@ export function todayView(data, options = {}) {
   return `<div class="view today-view" data-view="today">
     <section class="winner-hero ${leader ? '' : 'is-empty'}" aria-label="Daily winner">
       <div class="mountain-scene" aria-hidden="true"><span></span><span></span><span></span></div>
-      <div class="winner-panel">
+      <${leader ? 'button' : 'div'} class="winner-panel" ${leader ? `type="button" data-player="${escapeHtml(leader.id)}" aria-label="Select daily leader ${escapeHtml(leader.displayName)} on the Players tab"` : ''}>
         <div><p class="hero-label">${icon('trophy', 18)} ${isToday ? 'Today’s leader' : 'Daily leader'}</p><h1>${leader ? escapeHtml(leader.displayName) : 'No scores yet'}</h1><p class="winner-score">${leader ? `${formatScore(leader.score)} points` : 'No one in the group played.'}</p></div>
         <div class="streak-block"><strong>${isToday ? leader?.summary.currentWinStreak ?? 0 : Number(data.date.slice(-2))}</strong><span>${isToday ? 'win streak' : new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(`${data.date}T12:00:00Z`))}</span></div>
-      </div>
+      </${leader ? 'button' : 'div'}>
     </section>
 
     <section class="surface leaderboard" aria-labelledby="leaderboard-title">
@@ -125,35 +132,21 @@ export function todayView(data, options = {}) {
   </div>`;
 }
 
-function playerCard(player) {
-  return `<button class="player-card" type="button" data-player="${escapeHtml(player.id)}">
-    <span class="avatar">${escapeHtml(player.displayName.slice(0, 1).toUpperCase())}</span>
+function playerCard(player, selected) {
+  return `<button class="player-card ${selected ? 'is-selected' : ''}" type="button" data-player="${escapeHtml(player.id)}" aria-pressed="${selected}" aria-label="Show ${escapeHtml(player.displayName)}’s 30-day stats">
+    <span class="avatar">${escapeHtml(playerInitials(player.displayName))}</span>
     <span><strong>${escapeHtml(player.displayName)}</strong><small>${player.playedToday ? `${formatScore(player.score)} today` : 'Hasn’t played today'}</small></span>
-    <span class="mini-win"><strong>${formatScore(player.summary.average)}</strong><small>average</small></span>${icon('chevron', 19)}
+    <span class="mini-win"><strong>${formatScore(player.summary.average)}</strong><small>30-day avg</small></span>${icon('chevron', 19)}
   </button>`;
 }
 
 export function playersView(data, selectedId, options = {}) {
-  const player = data.players.find((item) => item.id === selectedId);
-  if (player) return playerDetail(player, data.date);
   const playerList = data.players.toSorted((a, b) => (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
+  const leader = data.players.find((player) => player.playedToday);
+  const selected = data.players.find((player) => player.id === selectedId) || data.players.find((player) => player.id === options.spotlightId) || leader || playerList[0];
   return `<div class="view content-view" data-view="players">
     <header class="players-heading"><div><h1>Players</h1><p>${data.players.length} total</p></div></header>
-    <section class="player-list" aria-label="Players">${playerList.map(playerCard).join('')}</section>
-    ${playerSummary(data, options.spotlightId)}
-  </div>`;
-}
-
-function playerDetail(player, date) {
-  const summary = player.summary;
-  return `<div class="view content-view" data-view="players">
-    <button class="back-action" type="button" data-action="back-players">← All players</button>
-    <header class="profile-head"><div><p>Player detail</p><h1>${escapeHtml(player.displayName)}</h1><span>${player.playedToday ? `${formatScore(player.score)} on ${formatDate(date, { year: undefined })}` : 'Not played today'}</span></div></header>
-    <section class="metric-grid" aria-label="30 day statistics">
-      <div><span>Average</span><strong>${formatScore(summary.average)}</strong></div><div><span>Best</span><strong>${formatScore(summary.best)}</strong></div>
-      <div><span>Wins</span><strong>${summary.wins}</strong></div><div><span>Longest streak</span><strong>${summary.longestWinStreak}</strong></div>
-      <div><span>Games</span><strong>${summary.gamesPlayed}</strong></div><div><span>Days missed</span><strong>${summary.daysMissed}</strong></div>
-    </section>
-    <section class="chart-card player-score-trail"><div class="section-heading"><div><h2>Score trail</h2><p>Hover or focus any day to see its score</p></div></div>${sparkline(player.history, { label: `${player.displayName} score history`, height: 142 })}</section>
+    <section class="player-list" aria-label="Players">${playerList.map((player) => playerCard(player, player.id === selected?.id)).join('')}</section>
+    ${playerSummary(data, selected?.id)}
   </div>`;
 }

@@ -13,7 +13,6 @@ const requestedGroup = routeParts[basePath ? routeParts.indexOf(basePath) + 1 : 
 const state = {
   data: null,
   view: 'today',
-  selectedPlayer: null,
   spotlightPlayer: null,
   selectedDate: null,
   calendarOpen: false,
@@ -58,7 +57,7 @@ function render() {
       calendarOpen: state.calendarOpen,
       standingsLoading: state.standingsLoading
     }),
-    players: () => playersView(state.data, state.selectedPlayer, { spotlightId: state.spotlightPlayer })
+    players: () => playersView(state.data, state.spotlightPlayer)
   };
   app.innerHTML = shell(views[state.view]());
 }
@@ -172,17 +171,20 @@ app.addEventListener('click', (event) => {
   const nav = event.target.closest('[data-nav]');
   if (nav) {
     state.view = nav.dataset.nav;
-    state.selectedPlayer = null;
     render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
   const player = event.target.closest('[data-player]');
   if (player) {
+    const cameFromPlayers = Boolean(player.closest('[data-view="players"]'));
     state.view = 'players';
-    state.selectedPlayer = player.dataset.player;
+    state.spotlightPlayer = player.dataset.player;
     render();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.requestAnimationFrame(() => {
+      if (cameFromPlayers) document.querySelector('#player-insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
     return;
   }
   const dateButton = event.target.closest('[data-date]');
@@ -202,10 +204,6 @@ app.addEventListener('click', (event) => {
   }
   if (action === 'close-calendar') {
     state.calendarOpen = false;
-    render();
-  }
-  if (action === 'back-players') {
-    state.selectedPlayer = null;
     render();
   }
 });
@@ -244,13 +242,6 @@ document.addEventListener('keydown', (event) => {
     state.calendarOpen = false;
     render();
   }
-});
-
-app.addEventListener('change', (event) => {
-  const select = event.target.closest('[data-summary-select]');
-  if (!select) return;
-  state.spotlightPlayer = select.value;
-  render();
 });
 
 async function init() {
