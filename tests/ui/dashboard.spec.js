@@ -173,12 +173,16 @@ test('monthly leaderboard handles movement and empty slots', async ({ page }) =>
 });
 
 test('group URLs load independent rosters', async ({ page }) => {
-  await page.goto('/HB');
+  const routeBase = process.env.GITHUB_ACTIONS && process.env.GITHUB_REPOSITORY
+    ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}`
+    : '';
+
+  await page.goto(`${routeBase}/HB`);
   await expect(page.locator('.brand')).toContainText('HB');
   await expect(page.getByRole('button', { name: 'View Diego Dad details', exact: true })).toBeVisible();
   await expect(page.getByText('Eo2', { exact: true })).toHaveCount(0);
 
-  await page.goto('/SB');
+  await page.goto(`${routeBase}/SB`);
   await expect(page.locator('.brand')).toContainText('SB');
   await expect(page.getByRole('button', { name: 'View Diego Tomas details', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'View Eo2 details', exact: true })).toBeVisible();
