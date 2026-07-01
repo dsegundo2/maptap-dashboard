@@ -46,6 +46,8 @@ test('loads the fallback leaderboard and navigates through player details', asyn
 test('players view shows the monthly top three and external MapTap link', async ({ page }) => {
   await page.getByRole('button', { name: 'Players' }).click();
   await expect(page.getByRole('heading', { name: /leaderboard/ })).toBeVisible();
+  await expect(page.getByText('Ranked by total wins')).toBeVisible();
+  await expect(page.locator('.player-card .mini-win small').first()).toHaveText('average');
   await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
   await expect(page.getByRole('button', { name: 'Trends' })).toHaveCount(0);
   const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });

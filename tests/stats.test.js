@@ -59,7 +59,7 @@ describe('historical leaderboard dates', () => {
 });
 
 describe('monthlyLeaderboard', () => {
-  it('uses calendar-month averages, reverse-alphabetical tiebreaks, and daily movement', () => {
+  it('uses calendar-month wins, average tiebreaks, and daily movement', () => {
     const data = { date: '2026-07-02', players: [
       { id: 'amy', displayName: 'Amy', history: [{ date: '2026-06-30', score: 1000 }, { date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 700 }] },
       { id: 'bob', displayName: 'Bob', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 950 }] },
@@ -69,10 +69,10 @@ describe('monthlyLeaderboard', () => {
     const result = monthlyLeaderboard(data);
 
     expect(result.label).toBe('July');
-    expect(result.players.map((player) => [player.id, player.average, player.movement])).toEqual([
-      ['bob', 875, 2],
-      ['zoe', 800, 0],
-      ['amy', 800, -2]
+    expect(result.players.map((player) => [player.id, player.wins, player.average, player.movement])).toEqual([
+      ['bob', 1, 875, 1],
+      ['amy', 1, 800, -1],
+      ['zoe', 0, 800, 0]
     ]);
   });
 

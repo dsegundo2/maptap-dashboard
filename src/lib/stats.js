@@ -15,28 +15,40 @@ export function scoreForDate(player, date) {
   return player.history?.find((game) => game.date === date)?.score ?? null;
 }
 
-function monthAverage(player, month, throughDate) {
+function monthStats(player, month, throughDate) {
   const scores = (player.history || [])
     .filter((game) => game.date.startsWith(month) && game.date <= throughDate && Number.isFinite(game.score))
-    .map((game) => game.score);
-  return scores.length ? { average: scores.reduce((sum, score) => sum + score, 0) / scores.length, gamesPlayed: scores.length } : null;
+    .map((game) => ({ date: game.date, score: game.score }));
+  return scores.length ? { scores, average: scores.reduce((sum, game) => sum + game.score, 0) / scores.length, gamesPlayed: scores.length } : null;
 }
 
 function rankMonthly(entries) {
-  return entries.toSorted((a, b) => b.average - a.average || b.displayName.localeCompare(a.displayName));
+  return entries.toSorted((a, b) => b.wins - a.wins || b.average - a.average || a.displayName.localeCompare(b.displayName));
+}
+
+function monthlyEntries(data, month, throughDate) {
+  const stats = data.players.flatMap((player) => {
+    const summary = monthStats(player, month, throughDate);
+    return summary ? [{ id: player.id, displayName: player.displayName, ...summary }] : [];
+  });
+  const wins = new Map(stats.map((player) => [player.id, 0]));
+  const dates = [...new Set(stats.flatMap((player) => player.scores.map((game) => game.date)))];
+  for (const date of dates) {
+    const games = stats.flatMap((player) => {
+      const game = player.scores.find((entry) => entry.date === date);
+      return game ? [{ id: player.id, score: game.score }] : [];
+    });
+    const winningScore = Math.max(...games.map((game) => game.score));
+    for (const game of games) if (game.score === winningScore) wins.set(game.id, wins.get(game.id) + 1);
+  }
+  return rankMonthly(stats.map((player) => ({ id: player.id, displayName: player.displayName, average: player.average, gamesPlayed: player.gamesPlayed, wins: wins.get(player.id) })));
 }
 
 export function monthlyLeaderboard(data, throughDate = data.date) {
   const month = throughDate.slice(0, 7);
   const previousDate = addDays(throughDate, -1);
-  const current = rankMonthly(data.players.flatMap((player) => {
-    const summary = monthAverage(player, month, throughDate);
-    return summary ? [{ id: player.id, displayName: player.displayName, ...summary }] : [];
-  }));
-  const previous = previousDate.startsWith(month) ? rankMonthly(data.players.flatMap((player) => {
-    const summary = monthAverage(player, month, previousDate);
-    return summary ? [{ id: player.id, displayName: player.displayName, ...summary }] : [];
-  })) : [];
+  const current = monthlyEntries(data, month, throughDate);
+  const previous = previousDate.startsWith(month) ? monthlyEntries(data, month, previousDate) : [];
   const previousRanks = new Map(previous.map((player, index) => [player.id, index + 1]));
   return {
     month,

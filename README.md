@@ -7,10 +7,10 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
 - **Small roster first:** optimized for up to 10 players. Everyone stays visible; there is no search, pagination, account, or “my stats” state.
 - **Named summaries:** 30-day stats always belong to an explicitly selected player.
 - **Historical leaderboards:** previous/next arrows and an accessible calendar cover the rolling 30-day window, never earlier than June 1, 2026, including partial and empty days.
-- **Fresh in the browser:** each page load revalidates public profiles against MapTap. A manual refresh bypasses the daily leaderboard cache URL and Share refreshes before composing its message.
+- **Fresh in the browser:** each page load revalidates public profiles against MapTap. A manual refresh bypasses the daily leaderboard cache URL and Share refreshes before creating its image.
 - **Resilient on static hosting:** `public/data/scores.json` is the most recent generated fallback. A failed live request never blanks the dashboard.
 - **Honest standings:** exact rank is used when MapTap publishes the player in its top list; otherwise rank and percentile use MapTap’s own public histogram method and are treated as estimates.
-- **Useful iMessage sharing:** the Web Share payload includes the current leader and score. GitHub Actions regenerates the static 1200×630 Open Graph image hourly—the closest a serverless GitHub Pages site can get to on-demand link previews.
+- **Native image sharing:** the Web Share payload is a purpose-built PNG with the selected day’s leaders and no accompanying message text. Browsers without file sharing download the image instead.
 
 ## Manage players
 
@@ -76,4 +76,4 @@ In the repository settings, set **Pages → Build and deployment → Source** to
 
 ## Static-hosting limitation
 
-GitHub Pages cannot execute code when Apple’s link-preview crawler requests a shared URL. The shared message text is live at tap time, but the visual Open Graph card can be up to one hour old. The scheduled workflow and five-minute MapTap leaderboard cache keep that window intentionally small without introducing a server.
+GitHub Pages cannot generate dynamic assets on its server. The browser therefore renders the selected day’s leaderboard image at share time; the scheduled workflow still refreshes the site’s fallback data and general Open Graph preview hourly.

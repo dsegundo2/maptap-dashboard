@@ -4,6 +4,7 @@ import { addDays, dashboardForDate, leaderboardDateRange } from './lib/stats.js'
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
 import { playersView, todayView } from './ui/views.js';
+import { shareCardFile } from './ui/share-card.js';
 
 const app = document.querySelector('#app');
 const state = {
@@ -98,22 +99,18 @@ async function shareSelectedDate() {
   setMessage('Refreshing before sharing…');
   const data = await refresh({ quiet: true });
   const selectedData = dashboardForDate(data, state.selectedDate, state.standingsByDate[state.selectedDate]);
-  const leader = selectedData.players.find((player) => player.playedToday);
-  const isToday = state.selectedDate === data.date;
-  const dateLabel = formatDate(state.selectedDate);
-  const text = leader
-    ? `${isToday ? 'Today’s' : `${dateLabel}’s`} MapTap leader is ${leader.displayName} with ${leader.score.toLocaleString()} points. See the full player leaderboard:`
-    : `No one in our MapTap group recorded a score for ${isToday ? 'today' : dateLabel}:`;
-  const url = new URL(window.location.href);
-  url.searchParams.set('date', state.selectedDate);
-  url.searchParams.set('shared', Date.now().toString());
   try {
-    if (navigator.share) {
-      await navigator.share({ title: `MapTap Dashboard — ${dateLabel}`, text, url: url.toString() });
+    const file = await shareCardFile(selectedData);
+    if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+      await navigator.share({ files: [file] });
       setMessage('Shared with fresh scores.');
     } else {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setMessage('Fresh leaderboard link copied.');
+      const download = document.createElement('a');
+      download.href = URL.createObjectURL(file);
+      download.download = file.name;
+      download.click();
+      window.setTimeout(() => URL.revokeObjectURL(download.href), 1000);
+      setMessage('Leaderboard image saved.');
     }
   } catch (error) {
     if (error.name !== 'AbortError') setMessage('Sharing was unavailable. Try again.');

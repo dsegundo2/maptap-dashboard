@@ -89,7 +89,7 @@ function playerCard(player) {
   return `<button class="player-card" type="button" data-player="${escapeHtml(player.id)}">
     <span class="avatar">${escapeHtml(player.displayName.slice(0, 1).toUpperCase())}</span>
     <span><strong>${escapeHtml(player.displayName)}</strong><small>${player.playedToday ? `${formatScore(player.score)} today` : 'Hasn’t played today'}</small></span>
-    <span class="mini-win"><strong>${player.summary.wins}</strong><small>wins</small></span>${icon('chevron', 19)}
+    <span class="mini-win"><strong>${formatScore(player.summary.average)}</strong><small>average</small></span>${icon('chevron', 19)}
   </button>`;
 }
 
@@ -101,12 +101,12 @@ export function playersView(data, selectedId) {
   const playerList = data.players.toSorted((a, b) => (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
   return `<div class="view content-view" data-view="players">
     <section class="monthly-leaderboard" aria-labelledby="monthly-leaderboard-title">
-      <header><div><h1 id="monthly-leaderboard-title">${monthly.label} leaderboard</h1><p>Ranked by monthly average</p></div><span>Top 3</span></header>
+      <header><div><h1 id="monthly-leaderboard-title">${monthly.label} leaderboard</h1><p>Ranked by total wins</p></div><span>Top 3</span></header>
       <div class="monthly-ranks">${slots.map((entry, index) => entry ? `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="View ${escapeHtml(entry.displayName)} details, ranked ${index + 1}">
         <span class="monthly-rank-number">${index + 1}</span>
-        <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'}</small></span>
-        <span class="monthly-average"><strong>${formatScore(entry.average)}</strong><small>average</small></span>
-        ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No change">—</span>'}
+        <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
+        <span class="monthly-average"><strong>${entry.wins}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
+        ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
       </button>` : `<div class="monthly-rank-row is-empty" aria-label="Rank ${index + 1} empty"><span class="monthly-rank-number">${index + 1}</span><span class="monthly-player">—</span><span class="monthly-average">—</span><span class="monthly-movement neutral">—</span></div>`).join('')}</div>
     </section>
     <header class="players-heading"><div><h1>Players</h1><p>${data.players.length} total</p></div></header>
