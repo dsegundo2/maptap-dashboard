@@ -28,8 +28,9 @@ test('selects a Today player on the Players tab without a detail page', async ({
   await expect(dailyList.getByRole('button', { name: `Select ${temporaryPlayer.displayName} on the Players tab`, exact: true })).toBeVisible();
   await expect(dailyList.getByRole('button', { name: `Select ${primaryPlayer.displayName} on the Players tab`, exact: true })).toBeVisible();
   await expect(page.locator('.leader-labels')).toContainText('Percentile');
-  await page.getByRole('button', { name: `Select daily leader ${primaryPlayer.displayName} on the Players tab`, exact: true }).click();
-  await expect(page.getByRole('button', { name: `Show ${primaryPlayer.displayName}’s 30-day stats`, exact: true })).toHaveAttribute('aria-pressed', 'true');
+  const todayLeader = scoreSnapshot.players.find((player) => player.playedToday);
+  await page.getByRole('button', { name: `Select daily leader ${todayLeader.displayName} on the Players tab`, exact: true }).click();
+  await expect(page.getByRole('button', { name: `Show ${todayLeader.displayName}’s 30-day stats`, exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Today', exact: true }).click();
   await dailyList.getByRole('button', { name: `Select ${temporaryPlayer.displayName} on the Players tab`, exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
