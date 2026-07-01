@@ -1,0 +1,36 @@
+{
+  "defaultGroup": "HB",
+  "groups": {
+    "HB": {
+      "name": "HB",
+      "players": [
+        {
+          "maptapUsername": "Diego Dad",
+          "displayName": "Diego Dad",
+          "enabled": true
+        },
+        {
+          "maptapUsername": "DiegoT",
+          "displayName": "Diego Tomas",
+          "enabled": true
+        }
+      ]
+    },
+    "SB": {
+      "name": "SB",
+      "players": [
+        {
+          "maptapUsername": "DiegoT",
+          "displayName": "Diego Tomas",
+          "enabled": true
+        },
+        {
+          "maptapUsername": "Eo2",
+          "displayName": "Eo2",
+          "enabled": true,
+          "temporary": true
+        }
+      ]
+    }
+  }
+}

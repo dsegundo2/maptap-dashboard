@@ -13,18 +13,26 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
 - **Honest standings:** exact rank is used when MapTap publishes the player in its top list; otherwise rank and percentile use MapTap’s own public histogram method and are treated as estimates.
 - **Native image sharing:** the Web Share payload is a purpose-built PNG with the selected day’s leaders and no accompanying message text. Browsers without file sharing download the image instead.
 
-## Manage players
+## Manage groups and players
 
-[`public/data/players.json`](public/data/players.json) is the single hand-edited player registry. Add, remove, reorder, or disable players only there:
+[`public/data/groups.json`](public/data/groups.json) is the single hand-edited registry. Each group id becomes a URL path (for example `/HB` and `/SB`), and each group owns a player list:
 
 ```json
-[
-  {
-    "maptapUsername": "PublicMapTapNickname",
-    "displayName": "Dashboard name",
-    "enabled": true
+{
+  "defaultGroup": "HB",
+  "groups": {
+    "HB": {
+      "name": "HB",
+      "players": [
+        {
+          "maptapUsername": "PublicMapTapNickname",
+          "displayName": "Dashboard name",
+          "enabled": true
+        }
+      ]
+    }
   }
-]
+}
 ```
 
 - `maptapUsername` must exactly match the public MapTap nickname.
@@ -33,7 +41,7 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
 - Set `enabled` to `false` to temporarily hide a player, or remove the object permanently.
 - `temporary` is optional metadata for entries that will be removed later.
 
-The registry is validated for required fields, duplicates, and the 10-player limit. [`public/data/scores.json`](public/data/scores.json) is generated from this registry and should not be edited manually. Requests are deliberately spaced by 650 ms when there is more than one player.
+Each roster is validated for required fields, duplicates, and the 10-player limit. [`public/data/scores.json`](public/data/scores.json) is generated for every group and should not be edited manually. Shared users are fetched once and reused across groups. Requests are deliberately spaced by 650 ms between unique players.
 
 After editing the registry, run `asdf exec npm run data:refresh` and `asdf exec npm run test:ui` to refresh the fallback data and confirm every enabled player appears.
 

@@ -9,7 +9,7 @@
     "data:refresh": "node scripts/fetch-data.mjs && node scripts/fetch-locations.mjs",
     "data:locations": "node scripts/fetch-locations.mjs",
     "og:generate": "node scripts/generate-og.mjs",
-    "build": "npm run og:generate && vite build",
+    "build": "npm run og:generate && vite build && node scripts/generate-group-routes.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "lint": "eslint .",
     "test": "vitest run",

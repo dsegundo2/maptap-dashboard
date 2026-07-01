@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { enabledPlayers } from '../src/lib/players.js';
-import playerRegistry from '../public/data/players.json' with { type: 'json' };
+import groupRegistry from '../public/data/groups.json' with { type: 'json' };
 import { readCache } from '../src/lib/data.js';
+import { enabledGroups, resolveGroup } from '../src/lib/groups.js';
 
 describe('player registry', () => {
-  it('includes Diego Dad and no longer includes Eo2', () => {
-    const players = enabledPlayers(playerRegistry);
+  it('keeps HB and SB rosters independent', () => {
+    const players = resolveGroup(groupRegistry, 'HB').players;
     expect(players).toContainEqual(expect.objectContaining({ maptapUsername: 'Diego Dad', displayName: 'Diego Dad' }));
     expect(players.some((player) => player.maptapUsername === 'Eo2')).toBe(false);
+    expect(resolveGroup(groupRegistry, 'SB').players.map((player) => player.maptapUsername)).toEqual(['DiegoT', 'Eo2']);
+    expect(enabledGroups(groupRegistry).map((group) => group.id)).toEqual(['HB', 'SB']);
   });
   it('filters disabled players without changing the registry format', () => {
     const players = enabledPlayers([

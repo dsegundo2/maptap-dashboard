@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
-import playerRegistry from '../../public/data/players.json' with { type: 'json' };
+import groupRegistry from '../../public/data/groups.json' with { type: 'json' };
 import scoreSnapshot from '../../public/data/scores.json' with { type: 'json' };
 
+const playerRegistry = groupRegistry.groups.HB.players;
 const [temporaryPlayer, primaryPlayer] = playerRegistry;
 const addDays = (date, amount) => {
   const value = new Date(`${date}T12:00:00Z`);
@@ -126,7 +127,7 @@ test('renders a clear empty state when no one has a score', async ({ page }) => 
     history: [{ date: '2026-06-29', score: 900 - index }]
   }));
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-06-29', globalPlayers: 1000, players } }));
-  await page.route('**/data/players.json', (route) => route.fulfill({ json: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) }));
+  await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
   await page.goto('/?date=2026-06-01');
   await expect(page.getByRole('heading', { name: 'No scores yet' })).toBeVisible();
   await expect(page.getByText('No one in the group played.')).toBeVisible();
@@ -163,10 +164,23 @@ test('monthly leaderboard handles movement and empty slots', async ({ page }) =>
     { id: 'empty', maptapUsername: 'Empty', displayName: 'Empty', history: [] }
   ];
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-07-02', globalPlayers: 1000, players } }));
-  await page.route('**/data/players.json', (route) => route.fulfill({ json: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) }));
+  await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
   await expect(page.getByLabel('Moved up 1 place')).toBeVisible();
   await expect(page.getByLabel('Moved down 1 place')).toBeVisible();
   await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(1);
+});
+
+test('group URLs load independent rosters', async ({ page }) => {
+  await page.goto('/HB');
+  await expect(page.locator('.brand')).toContainText('HB');
+  await expect(page.getByRole('button', { name: 'View Diego Dad details', exact: true })).toBeVisible();
+  await expect(page.getByText('Eo2', { exact: true })).toHaveCount(0);
+
+  await page.goto('/SB');
+  await expect(page.locator('.brand')).toContainText('SB');
+  await expect(page.getByRole('button', { name: 'View Diego Tomas details', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View Eo2 details', exact: true })).toBeVisible();
+  await expect(page.getByText('Diego Dad', { exact: true })).toHaveCount(0);
 });

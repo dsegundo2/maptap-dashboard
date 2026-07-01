@@ -7,6 +7,9 @@ import { playersView, todayView } from './ui/views.js';
 import { shareCardFile } from './ui/share-card.js';
 
 const app = document.querySelector('#app');
+const basePath = import.meta.env.BASE_URL.replace(/^\/|\/$/g, '');
+const routeParts = window.location.pathname.split('/').filter(Boolean);
+const requestedGroup = routeParts[basePath ? routeParts.indexOf(basePath) + 1 : 0] || null;
 const state = {
   data: null,
   view: 'today',
@@ -29,7 +32,7 @@ function shell(content = '') {
   ];
   return `<div class="app-shell">
     <header class="app-header">
-      <div class="brand">${logo}<div><strong>MapTap Dashboard</strong><span>${state.data ? formatUpdated(state.data.generatedAt) : 'Finding today’s trail…'}</span></div></div>
+      <div class="brand">${logo}<div><strong>MapTap Dashboard</strong><span>${state.data ? `${state.data.groupName} · ${formatUpdated(state.data.generatedAt)}` : 'Finding today’s trail…'}</span></div></div>
       <button class="refresh-button ${state.refreshing ? 'is-spinning' : ''}" type="button" data-action="refresh" aria-label="Refresh scores" ${state.refreshing ? 'disabled' : ''}>${icon('refresh', 17)}<span>Refresh</span></button>
     </header>
     ${state.message ? `<div class="toast" role="status">${state.message}</div>` : ''}
@@ -76,18 +79,18 @@ async function refresh({ quiet = false } = {}) {
   state.refreshing = true;
   if (!quiet) render();
   try {
-    const data = await fetchLiveDashboard();
+    const data = await fetchLiveDashboard(state.data?.groupId || requestedGroup);
     const previousRoster = state.data?.players.map((player) => player.id).toSorted().join('\n');
     const nextRoster = data.players.map((player) => player.id).toSorted().join('\n');
     if (previousRoster && previousRoster !== nextRoster) state.standingsByDate = {};
     state.data = data;
     state.source = 'live';
-    writeCache(data);
+    writeCache(data, data.groupId);
     if (!quiet) setMessage('Scores are fresh from MapTap.');
     return data;
   } catch (error) {
     console.warn('Live refresh unavailable; keeping the latest snapshot.', error);
-    if (!state.data) state.data = await fetchStaticDashboard();
+    if (!state.data) state.data = await fetchStaticDashboard(requestedGroup);
     state.source = 'snapshot';
     if (!quiet) setMessage('MapTap is taking a breather—showing the latest snapshot.');
     return state.data;
@@ -252,12 +255,13 @@ app.addEventListener('change', (event) => {
 
 async function init() {
   try {
-    const snapshot = await fetchStaticDashboard();
-    state.data = readCache(snapshot.configuredPlayers) || snapshot;
+    const snapshot = await fetchStaticDashboard(requestedGroup);
+    state.data = readCache(snapshot.configuredPlayers, snapshot.groupId) || snapshot;
+    document.title = `MapTap Dashboard — ${state.data.groupName}`;
     state.loading = false;
   } catch (error) {
     console.warn('Static snapshot unavailable.', error);
-    const cached = readCache();
+    const cached = readCache(undefined, requestedGroup || 'default');
     if (cached) {
       state.data = cached;
       state.loading = false;

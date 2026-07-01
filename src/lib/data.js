@@ -1,5 +1,5 @@
 import { compactHistory, dateKey, enrichDashboard, globalStanding } from './stats.js';
-import { enabledPlayers } from './players.js';
+import { resolveGroup } from './groups.js';
 
 const PROFILE_ENDPOINT = 'https://us-central1-jjexperiment-12af6.cloudfunctions.net/getPublicProfile';
 const LEADERBOARD_ROOT = 'https://firebasestorage.googleapis.com/v0/b/jjexperiment-12af6.appspot.com/o/data%2Fleaderboards%2F';
@@ -27,13 +27,14 @@ async function profileFor(user) {
   return { config: user, profile: result.user };
 }
 
-export async function fetchLiveDashboard() {
-  const [playerRegistry, config, locationArchive] = await Promise.all([
-    jsonFetch(asset('data/players.json')),
+export async function fetchLiveDashboard(groupId) {
+  const [groupRegistry, config, locationArchive] = await Promise.all([
+    jsonFetch(asset('data/groups.json')),
     jsonFetch(asset('data/config.json')),
     jsonFetch(asset('data/locations.json')).catch(() => ({ dates: {} }))
   ]);
-  const users = enabledPlayers(playerRegistry);
+  const group = resolveGroup(groupRegistry, groupId);
+  const users = group.players;
   const today = dateKey(new Date(), config.timezone);
   const leaderboardUrl = `${LEADERBOARD_ROOT}daily-${today}.json?alt=media&v=${Date.now()}`;
   const leaderboardPromise = jsonFetch(leaderboardUrl).then((value) => value.leaderboard);
@@ -78,20 +79,22 @@ export async function fetchLiveDashboard() {
       history
     };
   });
-  return enrichDashboard({ generatedAt: new Date().toISOString(), date: today, globalPlayers: leaderboard.totalPlayers, players, locationsByDate: locationArchive.dates || {} }, config.competitionWindowDays);
+  return enrichDashboard({ generatedAt: new Date().toISOString(), date: today, globalPlayers: leaderboard.totalPlayers, players, locationsByDate: locationArchive.dates || {}, groupId: group.id, groupName: group.name }, config.competitionWindowDays);
 }
 
-export async function fetchStaticDashboard() {
-  const [data, config, playerRegistry, locationArchive] = await Promise.all([
+export async function fetchStaticDashboard(groupId) {
+  const [data, config, groupRegistry, locationArchive] = await Promise.all([
     jsonFetch(asset('data/scores.json')),
     jsonFetch(asset('data/config.json')),
-    jsonFetch(asset('data/players.json')),
+    jsonFetch(asset('data/groups.json')),
     jsonFetch(asset('data/locations.json')).catch(() => ({ dates: {} }))
   ]);
-  const configuredPlayers = enabledPlayers(playerRegistry);
+  const group = resolveGroup(groupRegistry, groupId);
+  const configuredPlayers = group.players;
   const order = new Map(configuredPlayers.map((player, index) => [player.maptapUsername, index]));
-  const players = data.players.map((player) => ({ ...player, displayOrder: order.get(player.maptapUsername) ?? Number.MAX_SAFE_INTEGER }));
-  return { ...enrichDashboard({ ...data, players, locationsByDate: locationArchive.dates || {} }, config.competitionWindowDays), configuredPlayers };
+  const sourcePlayers = data.groups?.[group.id]?.players || (group.id === groupRegistry.defaultGroup ? data.players : []);
+  const players = sourcePlayers.map((player) => ({ ...player, displayOrder: order.get(player.maptapUsername) ?? Number.MAX_SAFE_INTEGER }));
+  return { ...enrichDashboard({ ...data, players, locationsByDate: locationArchive.dates || {}, groupId: group.id, groupName: group.name }, config.competitionWindowDays), configuredPlayers };
 }
 
 export async function fetchStandingsForDate(date, players) {
@@ -115,9 +118,9 @@ function rosterKey(players = []) {
   return players.map((player) => player.maptapUsername).filter(Boolean).toSorted().join('\n');
 }
 
-export function readCache(expectedPlayers) {
+export function readCache(expectedPlayers, groupId = 'default') {
   try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+    const cached = JSON.parse(localStorage.getItem(`${CACHE_KEY}:${groupId}`));
     if (!cached?.savedAt || Date.now() - cached.savedAt >= CACHE_TTL) return null;
     if (expectedPlayers && rosterKey(cached.data?.players) !== rosterKey(expectedPlayers)) return null;
     return cached.data;
@@ -126,6 +129,6 @@ export function readCache(expectedPlayers) {
   }
 }
 
-export function writeCache(data) {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data })); } catch { /* storage is optional */ }
+export function writeCache(data, groupId = data?.groupId || 'default') {
+  try { localStorage.setItem(`${CACHE_KEY}:${groupId}`, JSON.stringify({ savedAt: Date.now(), data })); } catch { /* storage is optional */ }
 }
