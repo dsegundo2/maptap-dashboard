@@ -7,6 +7,7 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
 - **Small roster first:** optimized for up to 10 players. Everyone stays visible; there is no search, pagination, account, or “my stats” state.
 - **Named summaries:** 30-day stats always belong to an explicitly selected player.
 - **Historical leaderboards:** previous/next arrows and an accessible calendar cover the rolling 30-day window, never earlier than June 1, 2026, including partial and empty days.
+- **Spoiler-safe location trails:** past days show MapTap’s five round locations on a compact world map and numbered list. Today’s locations are never shipped into the rendered view.
 - **Fresh in the browser:** each page load revalidates public profiles against MapTap. A manual refresh bypasses the daily leaderboard cache URL and Share refreshes before creating its image.
 - **Resilient on static hosting:** `public/data/scores.json` is the most recent generated fallback. A failed live request never blanks the dashboard.
 - **Honest standings:** exact rank is used when MapTap publishes the player in its top list; otherwise rank and percentile use MapTap’s own public histogram method and are treated as estimates.
@@ -64,8 +65,9 @@ The UI suite is Chromium-only and starts the local Vite server automatically. Un
 2. It calls MapTap’s public `getPublicProfile` Firebase callable for each configured nickname.
 3. It reads MapTap’s public daily leaderboard JSON for global totals and score buckets.
 4. It calculates local group ranking, daily wins, streaks, and named 30-day summaries.
-5. It stores the last successful live response in a five-minute local cache while still revalidating on load.
-6. If live requests fail, the generated `scores.json` snapshot is shown with a clear status message.
+5. The refresh job archives MapTap’s five locations for the previous 29 dates using ISO keys, including across year boundaries, in `public/data/locations.json`.
+6. It stores the last successful live response in a five-minute local cache while still revalidating on load.
+7. If live requests fail, the generated `scores.json` snapshot is shown with a clear status message.
 
 No private credentials, scraping proxy, backend, or user login is required.
 

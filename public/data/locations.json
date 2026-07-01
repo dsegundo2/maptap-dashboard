@@ -1,0 +1,876 @@
+{
+  "generatedAt": "2026-07-01T14:44:15.302Z",
+  "throughDate": "2026-07-01",
+  "dates": {
+    "2026-06-02": {
+      "dayKey": "June2",
+      "locations": [
+        {
+          "name": "Oakland, California",
+          "lat": 37.8044,
+          "lng": -122.2712
+        },
+        {
+          "name": "Buffalo, New York",
+          "lat": 42.8864,
+          "lng": -78.8784
+        },
+        {
+          "name": "Berlin, Germany",
+          "lat": 52.52,
+          "lng": 13.405
+        },
+        {
+          "name": "Giza, Egypt",
+          "lat": 29.9792,
+          "lng": 31.1342
+        },
+        {
+          "name": "Lima, Peru",
+          "lat": -12.0464,
+          "lng": -77.0428
+        }
+      ]
+    },
+    "2026-06-03": {
+      "dayKey": "June3",
+      "locations": [
+        {
+          "name": "Bordeaux, France",
+          "lat": 44.8378,
+          "lng": -0.5792
+        },
+        {
+          "name": "Vancouver, British Columbia, Canada",
+          "lat": 49.2827,
+          "lng": -123.1207
+        },
+        {
+          "name": "Podgorica, Montenegro",
+          "lat": 42.4304,
+          "lng": 19.2594
+        },
+        {
+          "name": "Guangzhou, China",
+          "lat": 23.1291,
+          "lng": 113.2644
+        },
+        {
+          "name": "Mer Island, Torres Strait, Australia",
+          "lat": -9.9167,
+          "lng": 144.0833
+        }
+      ]
+    },
+    "2026-06-04": {
+      "dayKey": "June4",
+      "locations": [
+        {
+          "name": "Tucson, Arizona",
+          "lat": 32.2226,
+          "lng": -110.9747
+        },
+        {
+          "name": "Cagliari, Sardinia, Italy",
+          "lat": 39.2238,
+          "lng": 9.1217
+        },
+        {
+          "name": "Colombo, Sri Lanka",
+          "lat": 6.9271,
+          "lng": 79.8612
+        },
+        {
+          "name": "Nairobi, Kenya",
+          "lat": -1.2921,
+          "lng": 36.8219
+        },
+        {
+          "name": "Prayagraj, Uttar Pradesh, India",
+          "lat": 25.4358,
+          "lng": 81.8463
+        }
+      ]
+    },
+    "2026-06-05": {
+      "dayKey": "June5",
+      "locations": [
+        {
+          "name": "Padua, Italy",
+          "lat": 45.4064,
+          "lng": 11.8768
+        },
+        {
+          "name": "Hagia Sophia, Turkey",
+          "lat": 41.0086,
+          "lng": 28.9802
+        },
+        {
+          "name": "Hong Kong, China",
+          "lat": 22.3193,
+          "lng": 114.1694
+        },
+        {
+          "name": "Campeche, Mexico",
+          "lat": 19.8301,
+          "lng": -90.5349
+        },
+        {
+          "name": "Zibo, Shandong Province, China",
+          "lat": 36.8135,
+          "lng": 118.0549
+        }
+      ]
+    },
+    "2026-06-06": {
+      "dayKey": "June6",
+      "locations": [
+        {
+          "name": "Madrid, Spain",
+          "lat": 40.4168,
+          "lng": -3.7038
+        },
+        {
+          "name": "Normandy, France",
+          "lat": 49.3228,
+          "lng": -0.621
+        },
+        {
+          "name": "Moscow, Russia",
+          "lat": 55.7558,
+          "lng": 37.6173
+        },
+        {
+          "name": "Mackinac Island, Michigan",
+          "lat": 45.8492,
+          "lng": -84.6189
+        },
+        {
+          "name": "Laoag, Philippines",
+          "lat": 18.1989,
+          "lng": 120.5936
+        }
+      ]
+    },
+    "2026-06-07": {
+      "dayKey": "June7",
+      "locations": [
+        {
+          "name": "Pasadena, California",
+          "lat": 34.1478,
+          "lng": -118.1445
+        },
+        {
+          "name": "Vatican City",
+          "lat": 41.9029,
+          "lng": 12.4534
+        },
+        {
+          "name": "Veracruz, Mexico",
+          "lat": 19.1738,
+          "lng": -96.1342
+        },
+        {
+          "name": "Kolkata, India",
+          "lat": 22.5726,
+          "lng": 88.3639
+        },
+        {
+          "name": "The Battle of Midway, World War II",
+          "lat": 28.2,
+          "lng": -177.35
+        }
+      ]
+    },
+    "2026-06-08": {
+      "dayKey": "June8",
+      "locations": [
+        {
+          "name": "Jacksonville, Florida",
+          "lat": 30.3322,
+          "lng": -81.6557
+        },
+        {
+          "name": "Lincoln, England",
+          "lat": 53.2307,
+          "lng": -0.5406
+        },
+        {
+          "name": "Kirkjubæjarklaustur, Iceland",
+          "lat": 63.7832,
+          "lng": -18.0666
+        },
+        {
+          "name": "Cabo San Lucas, Baja California Sur, Mexico",
+          "lat": 22.8905,
+          "lng": -109.9167
+        },
+        {
+          "name": "Karuizawa, Japan",
+          "lat": 36.3486,
+          "lng": 138.5969
+        }
+      ]
+    },
+    "2026-06-09": {
+      "dayKey": "June9",
+      "locations": [
+        {
+          "name": "Mount Rainier, Washington",
+          "lat": 46.8523,
+          "lng": -121.7603
+        },
+        {
+          "name": "Vienna, Austria",
+          "lat": 48.2082,
+          "lng": 16.3738
+        },
+        {
+          "name": "St Petersburg, Russia",
+          "lat": 59.9343,
+          "lng": 30.3351
+        },
+        {
+          "name": "Cebu, Philippines",
+          "lat": 10.3157,
+          "lng": 123.8854
+        },
+        {
+          "name": "Lanzhou, Gansu, China",
+          "lat": 36.0611,
+          "lng": 103.8343
+        }
+      ]
+    },
+    "2026-06-10": {
+      "dayKey": "June10",
+      "locations": [
+        {
+          "name": "Southampton, England",
+          "lat": 50.9097,
+          "lng": -1.4044
+        },
+        {
+          "name": "Coimbra, Portugal",
+          "lat": 40.2033,
+          "lng": -8.4103
+        },
+        {
+          "name": "Mecca, Saudi Arabia",
+          "lat": 21.3891,
+          "lng": 39.8579
+        },
+        {
+          "name": "Buenos Aires, Argentina",
+          "lat": -34.6037,
+          "lng": -58.3816
+        },
+        {
+          "name": "Mashhad, Iran",
+          "lat": 36.2605,
+          "lng": 59.6168
+        }
+      ]
+    },
+    "2026-06-11": {
+      "dayKey": "June11",
+      "locations": [
+        {
+          "name": "Jefferson City, Missouri",
+          "lat": 38.5767,
+          "lng": -92.1735
+        },
+        {
+          "name": "Hørsholm, Denmark",
+          "lat": 55.8833,
+          "lng": 12.5
+        },
+        {
+          "name": "Kosai, Shizuoka Prefecture, Japan",
+          "lat": 34.7185,
+          "lng": 137.5317
+        },
+        {
+          "name": "Isle of Wight, England",
+          "lat": 50.6938,
+          "lng": -1.3047
+        },
+        {
+          "name": "Jeddah, Saudi Arabia",
+          "lat": 21.5433,
+          "lng": 39.1728
+        }
+      ]
+    },
+    "2026-06-12": {
+      "dayKey": "June12",
+      "locations": [
+        {
+          "name": "Richmond, Virginia",
+          "lat": 37.5407,
+          "lng": -77.436
+        },
+        {
+          "name": "Leipzig, Germany",
+          "lat": 51.3397,
+          "lng": 12.3731
+        },
+        {
+          "name": "Lyon, France",
+          "lat": 45.764,
+          "lng": 4.8357
+        },
+        {
+          "name": "Manila, Philippines",
+          "lat": 14.5995,
+          "lng": 120.9842
+        },
+        {
+          "name": "Recife, Pernambuco, Brazil",
+          "lat": -8.0476,
+          "lng": -34.877
+        }
+      ]
+    },
+    "2026-06-13": {
+      "dayKey": "June13",
+      "locations": [
+        {
+          "name": "Tangier, Morocco",
+          "lat": 35.7595,
+          "lng": -5.834
+        },
+        {
+          "name": "Alexandria, Egypt",
+          "lat": 31.2001,
+          "lng": 29.9187
+        },
+        {
+          "name": "Delhi, India",
+          "lat": 28.7041,
+          "lng": 77.1025
+        },
+        {
+          "name": "Konya, Turkey",
+          "lat": 37.8746,
+          "lng": 32.4932
+        },
+        {
+          "name": "Quanzhou, Fujian, China",
+          "lat": 24.8741,
+          "lng": 118.6757
+        }
+      ]
+    },
+    "2026-06-14": {
+      "dayKey": "June14",
+      "locations": [
+        {
+          "name": "Knoxville, Tennessee",
+          "lat": 35.9606,
+          "lng": -83.9207
+        },
+        {
+          "name": "Paris, France",
+          "lat": 48.8566,
+          "lng": 2.3522
+        },
+        {
+          "name": "Amsterdam, Netherlands",
+          "lat": 52.3676,
+          "lng": 4.9041
+        },
+        {
+          "name": "Frankfurt, Germany",
+          "lat": 50.1109,
+          "lng": 8.6821
+        },
+        {
+          "name": "Ryazan, Ryazan Oblast, Russia",
+          "lat": 54.6292,
+          "lng": 39.7364
+        }
+      ]
+    },
+    "2026-06-15": {
+      "dayKey": "June15",
+      "locations": [
+        {
+          "name": "Chicago, Illinois",
+          "lat": 41.8781,
+          "lng": -87.6298
+        },
+        {
+          "name": "Bath, England, United Kingdom",
+          "lat": 51.3811,
+          "lng": -2.359
+        },
+        {
+          "name": "Galway, Ireland",
+          "lat": 53.2707,
+          "lng": -9.0568
+        },
+        {
+          "name": "Bergen, Norway",
+          "lat": 60.3913,
+          "lng": 5.3221
+        },
+        {
+          "name": "Bay of Fundy, Nova Scotia, Canada",
+          "lat": 45.0537,
+          "lng": -65.675
+        }
+      ]
+    },
+    "2026-06-16": {
+      "dayKey": "June16",
+      "locations": [
+        {
+          "name": "Springfield, Illinois",
+          "lat": 39.7817,
+          "lng": -89.6501
+        },
+        {
+          "name": "Lausanne, Switzerland",
+          "lat": 46.5197,
+          "lng": 6.6323
+        },
+        {
+          "name": "Dothan, Alabama",
+          "lat": 31.2232,
+          "lng": -85.3905
+        },
+        {
+          "name": "Tortuguero National Park, Costa Rica",
+          "lat": 10.5412,
+          "lng": -83.502
+        },
+        {
+          "name": "Harare, Zimbabwe",
+          "lat": -17.8292,
+          "lng": 31.0522
+        }
+      ]
+    },
+    "2026-06-17": {
+      "dayKey": "June17",
+      "locations": [
+        {
+          "name": "Reykjavík, Iceland",
+          "lat": 64.1466,
+          "lng": -21.9426
+        },
+        {
+          "name": "Seville, Spain",
+          "lat": 37.3891,
+          "lng": -5.9845
+        },
+        {
+          "name": "Guadalajara, Jalisco, Mexico",
+          "lat": 20.6597,
+          "lng": -103.3496
+        },
+        {
+          "name": "Leeuwarden, Netherlands",
+          "lat": 53.2012,
+          "lng": 5.7999
+        },
+        {
+          "name": "Agra, India",
+          "lat": 27.1767,
+          "lng": 78.0081
+        }
+      ]
+    },
+    "2026-06-18": {
+      "dayKey": "June18",
+      "locations": [
+        {
+          "name": "Baltimore, Maryland",
+          "lat": 39.2904,
+          "lng": -76.6122
+        },
+        {
+          "name": "Syracuse, Sicily, Italy",
+          "lat": 37.0755,
+          "lng": 15.2866
+        },
+        {
+          "name": "The Battle of Waterloo (Belgium)",
+          "lat": 50.6806,
+          "lng": 4.4128
+        },
+        {
+          "name": "Algiers, Algeria",
+          "lat": 36.7538,
+          "lng": 3.0588
+        },
+        {
+          "name": "Ternate, North Maluku, Indonesia",
+          "lat": 0.79,
+          "lng": 127.3842
+        }
+      ]
+    },
+    "2026-06-19": {
+      "dayKey": "June19",
+      "locations": [
+        {
+          "name": "Galveston, Texas",
+          "lat": 29.3013,
+          "lng": -94.7977
+        },
+        {
+          "name": "Dortmund, Germany",
+          "lat": 51.5136,
+          "lng": 7.4653
+        },
+        {
+          "name": "Clermont-Ferrand, France",
+          "lat": 45.7772,
+          "lng": 3.087
+        },
+        {
+          "name": "Monterrey, Nuevo León, Mexico",
+          "lat": 25.6866,
+          "lng": -100.3161
+        },
+        {
+          "name": "Valparaíso, Chile",
+          "lat": -33.0472,
+          "lng": -71.6127
+        }
+      ]
+    },
+    "2026-06-20": {
+      "dayKey": "June20",
+      "locations": [
+        {
+          "name": "Ulm, Germany",
+          "lat": 48.4011,
+          "lng": 9.9876
+        },
+        {
+          "name": "Amman, Jordan",
+          "lat": 31.9539,
+          "lng": 35.9106
+        },
+        {
+          "name": "Chernivtsi, Ukraine",
+          "lat": 48.2915,
+          "lng": 25.9403
+        },
+        {
+          "name": "Hargeisa, Somaliland",
+          "lat": 9.5624,
+          "lng": 44.077
+        },
+        {
+          "name": "Douala, Cameroon",
+          "lat": 4.0511,
+          "lng": 9.7679
+        }
+      ]
+    },
+    "2026-06-21": {
+      "dayKey": "June21",
+      "locations": [
+        {
+          "name": "Evansville, Indiana",
+          "lat": 37.9716,
+          "lng": -87.5711
+        },
+        {
+          "name": "Aswan, Egypt",
+          "lat": 24.0889,
+          "lng": 32.8998
+        },
+        {
+          "name": "Riga, Latvia",
+          "lat": 56.9496,
+          "lng": 24.1052
+        },
+        {
+          "name": "Sennar, Sudan",
+          "lat": 13.55,
+          "lng": 33.6
+        },
+        {
+          "name": "Apra Harbor, Guam, United States",
+          "lat": 13.4443,
+          "lng": 144.6504
+        }
+      ]
+    },
+    "2026-06-22": {
+      "dayKey": "June22",
+      "locations": [
+        {
+          "name": "London, England, United Kingdom",
+          "lat": 51.5074,
+          "lng": -0.1278
+        },
+        {
+          "name": "Cleveland, Ohio",
+          "lat": 41.4993,
+          "lng": -81.6944
+        },
+        {
+          "name": "Olympia, Washington",
+          "lat": 47.0379,
+          "lng": -122.9007
+        },
+        {
+          "name": "Nasiriyah, Iraq",
+          "lat": 31.057,
+          "lng": 46.2573
+        },
+        {
+          "name": "Manaus, Amazonas, Brazil",
+          "lat": -3.119,
+          "lng": -60.0217
+        }
+      ]
+    },
+    "2026-06-23": {
+      "dayKey": "June23",
+      "locations": [
+        {
+          "name": "Hollywood, California",
+          "lat": 34.0983,
+          "lng": -118.3267
+        },
+        {
+          "name": "Richmond, Virginia",
+          "lat": 37.5407,
+          "lng": -77.436
+        },
+        {
+          "name": "Mannheim, Germany",
+          "lat": 49.4875,
+          "lng": 8.466
+        },
+        {
+          "name": "Thunder Bay, Ontario, Canada",
+          "lat": 48.3809,
+          "lng": -89.2477
+        },
+        {
+          "name": "Riyadh, Saudi Arabia",
+          "lat": 24.7136,
+          "lng": 46.6753
+        }
+      ]
+    },
+    "2026-06-24": {
+      "dayKey": "June24",
+      "locations": [
+        {
+          "name": "Tacoma, Washington",
+          "lat": 47.2529,
+          "lng": -122.4443
+        },
+        {
+          "name": "Liège, Belgium",
+          "lat": 50.6326,
+          "lng": 5.5797
+        },
+        {
+          "name": "Verona, Italy",
+          "lat": 45.4384,
+          "lng": 10.9916
+        },
+        {
+          "name": "Bandung, West Java, Indonesia",
+          "lat": -6.9175,
+          "lng": 107.6191
+        },
+        {
+          "name": "Cusco, Peru",
+          "lat": -13.5167,
+          "lng": -71.9789
+        }
+      ]
+    },
+    "2026-06-25": {
+      "dayKey": "June25",
+      "locations": [
+        {
+          "name": "Newport, Rhode Island",
+          "lat": 41.4901,
+          "lng": -71.3128
+        },
+        {
+          "name": "Panama City, Panama",
+          "lat": 8.9824,
+          "lng": -79.5199
+        },
+        {
+          "name": "Cape Horn, Chile",
+          "lat": -55.9833,
+          "lng": -67.2667
+        },
+        {
+          "name": "Babylon (modern day Iraq)",
+          "lat": 32.5364,
+          "lng": 44.42
+        },
+        {
+          "name": "Nukuʻalofa, Tonga",
+          "lat": -21.1394,
+          "lng": -175.2047
+        }
+      ]
+    },
+    "2026-06-26": {
+      "dayKey": "June26",
+      "locations": [
+        {
+          "name": "Glasgow, Scotland",
+          "lat": 55.8642,
+          "lng": -4.2518
+        },
+        {
+          "name": "Berlin, Germany",
+          "lat": 52.52,
+          "lng": 13.405
+        },
+        {
+          "name": "Toronto, Canada",
+          "lat": 43.6532,
+          "lng": -79.3832
+        },
+        {
+          "name": "Accra, Ghana",
+          "lat": 5.6037,
+          "lng": -0.187
+        },
+        {
+          "name": "Port Vila, Vanuatu",
+          "lat": -17.7333,
+          "lng": 168.3273
+        }
+      ]
+    },
+    "2026-06-27": {
+      "dayKey": "June27",
+      "locations": [
+        {
+          "name": "Göttingen, Germany",
+          "lat": 51.5413,
+          "lng": 9.9158
+        },
+        {
+          "name": "Kyiv, Ukraine",
+          "lat": 50.4501,
+          "lng": 30.5234
+        },
+        {
+          "name": "Brisbane, Australia",
+          "lat": -27.4698,
+          "lng": 153.0251
+        },
+        {
+          "name": "Utqiagvik (Barrow), Alaska",
+          "lat": 71.2906,
+          "lng": -156.7886
+        },
+        {
+          "name": "Djibouti City, Djibouti",
+          "lat": 11.5721,
+          "lng": 43.1456
+        }
+      ]
+    },
+    "2026-06-28": {
+      "dayKey": "June28",
+      "locations": [
+        {
+          "name": "Charleston, South Carolina",
+          "lat": 32.7765,
+          "lng": -79.9311
+        },
+        {
+          "name": "Athens, Greece",
+          "lat": 37.9838,
+          "lng": 23.7275
+        },
+        {
+          "name": "Port-au-Prince, Haiti",
+          "lat": 18.5944,
+          "lng": -72.3074
+        },
+        {
+          "name": "Vientiane, Laos",
+          "lat": 17.9757,
+          "lng": 102.6331
+        },
+        {
+          "name": "Ouagadougou, Burkina Faso",
+          "lat": 12.3714,
+          "lng": -1.5197
+        }
+      ]
+    },
+    "2026-06-29": {
+      "dayKey": "June29",
+      "locations": [
+        {
+          "name": "Chicago, Illinois",
+          "lat": 41.8781,
+          "lng": -87.6298
+        },
+        {
+          "name": "Cupertino, California",
+          "lat": 37.3229,
+          "lng": -122.0322
+        },
+        {
+          "name": "Perth, Australia",
+          "lat": -31.9523,
+          "lng": 115.8613
+        },
+        {
+          "name": "Lahore, Pakistan",
+          "lat": 31.5497,
+          "lng": 74.3436
+        },
+        {
+          "name": "Baikonur, Kazakhstan",
+          "lat": 45.92,
+          "lng": 63.342
+        }
+      ]
+    },
+    "2026-06-30": {
+      "dayKey": "June30",
+      "locations": [
+        {
+          "name": "Anglesey, Wales, United Kingdom",
+          "lat": 53.2787,
+          "lng": -4.1427
+        },
+        {
+          "name": "Mount Rushmore, South Dakota",
+          "lat": 43.8791,
+          "lng": -103.4591
+        },
+        {
+          "name": "Mérida, Yucatán, Mexico",
+          "lat": 20.9674,
+          "lng": -89.5926
+        },
+        {
+          "name": "Krasnoyarsk, Siberia, Russia",
+          "lat": 56.0153,
+          "lng": 92.8932
+        },
+        {
+          "name": "Santa Cruz de Tenerife, Canary Islands, Spain",
+          "lat": 28.4636,
+          "lng": -16.2518
+        }
+      ]
+    }
+  }
+}

@@ -3,7 +3,7 @@ import { enabledPlayers } from './players.js';
 
 const PROFILE_ENDPOINT = 'https://us-central1-jjexperiment-12af6.cloudfunctions.net/getPublicProfile';
 const LEADERBOARD_ROOT = 'https://firebasestorage.googleapis.com/v0/b/jjexperiment-12af6.appspot.com/o/data%2Fleaderboards%2F';
-const CACHE_KEY = 'maptap-dashboard-cache-v3';
+const CACHE_KEY = 'maptap-dashboard-cache-v4';
 const CACHE_TTL = 5 * 60 * 1000;
 
 function asset(path) {
@@ -28,7 +28,11 @@ async function profileFor(user) {
 }
 
 export async function fetchLiveDashboard() {
-  const [playerRegistry, config] = await Promise.all([jsonFetch(asset('data/players.json')), jsonFetch(asset('data/config.json'))]);
+  const [playerRegistry, config, locationArchive] = await Promise.all([
+    jsonFetch(asset('data/players.json')),
+    jsonFetch(asset('data/config.json')),
+    jsonFetch(asset('data/locations.json')).catch(() => ({ dates: {} }))
+  ]);
   const users = enabledPlayers(playerRegistry);
   const today = dateKey(new Date(), config.timezone);
   const leaderboardUrl = `${LEADERBOARD_ROOT}daily-${today}.json?alt=media&v=${Date.now()}`;
@@ -74,15 +78,20 @@ export async function fetchLiveDashboard() {
       history
     };
   });
-  return enrichDashboard({ generatedAt: new Date().toISOString(), date: today, globalPlayers: leaderboard.totalPlayers, players }, config.competitionWindowDays);
+  return enrichDashboard({ generatedAt: new Date().toISOString(), date: today, globalPlayers: leaderboard.totalPlayers, players, locationsByDate: locationArchive.dates || {} }, config.competitionWindowDays);
 }
 
 export async function fetchStaticDashboard() {
-  const [data, config, playerRegistry] = await Promise.all([jsonFetch(asset('data/scores.json')), jsonFetch(asset('data/config.json')), jsonFetch(asset('data/players.json'))]);
+  const [data, config, playerRegistry, locationArchive] = await Promise.all([
+    jsonFetch(asset('data/scores.json')),
+    jsonFetch(asset('data/config.json')),
+    jsonFetch(asset('data/players.json')),
+    jsonFetch(asset('data/locations.json')).catch(() => ({ dates: {} }))
+  ]);
   const configuredPlayers = enabledPlayers(playerRegistry);
   const order = new Map(configuredPlayers.map((player, index) => [player.maptapUsername, index]));
   const players = data.players.map((player) => ({ ...player, displayOrder: order.get(player.maptapUsername) ?? Number.MAX_SAFE_INTEGER }));
-  return { ...enrichDashboard({ ...data, players }, config.competitionWindowDays), configuredPlayers };
+  return { ...enrichDashboard({ ...data, players, locationsByDate: locationArchive.dates || {} }, config.competitionWindowDays), configuredPlayers };
 }
 
 export async function fetchStandingsForDate(date, players) {

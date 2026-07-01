@@ -79,9 +79,12 @@ test('desktop uses a persistent side rail instead of mobile app navigation', asy
 
 test('navigates previous and next leaderboard days', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Jump to today' })).toBeDisabled();
+  await expect(page.locator('.location-trail')).toHaveCount(0);
   const previousDate = addDays(scoreSnapshot.date, -1);
   await page.getByRole('button', { name: 'Previous day' }).click();
   await expect(page.getByRole('heading', { name: 'Daily leaderboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Where the trail went' })).toBeVisible();
+  await expect(page.locator('.location-list li')).toHaveCount(5);
   await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText(shortDate(previousDate));
   for (const player of playerRegistry) {
     const row = page.getByRole('button', { name: `View ${player.displayName} details` });
@@ -90,6 +93,7 @@ test('navigates previous and next leaderboard days', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Jump to today' })).toBeEnabled();
   await page.getByRole('button', { name: 'Jump to today' }).click();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
+  await expect(page.locator('.location-trail')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Jump to today' })).toBeDisabled();
 });
 

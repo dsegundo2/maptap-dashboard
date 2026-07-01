@@ -42,6 +42,25 @@ function calendarPicker(minimum, maximum, selected) {
   </div>`;
 }
 
+function locationTrail(date, locations = []) {
+  if (!locations.length) return '';
+  const points = locations.map((location, index) => {
+    const x = 16 + ((Number(location.lng) + 180) / 360) * 288;
+    const y = 12 + ((90 - Number(location.lat)) / 180) * 126;
+    return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="10" class="location-pulse"/><circle r="7" class="location-marker"/><text y="3.2">${index + 1}</text></g>`;
+  }).join('');
+  return `<section class="location-trail" aria-labelledby="location-trail-title">
+    <header><div><p>Round locations</p><h2 id="location-trail-title">Where the trail went</h2></div><span>${formatDate(date, { year: undefined })}</span></header>
+    <div class="location-trail-layout">
+      <figure class="location-map" aria-label="World map showing the five round locations">
+        <svg viewBox="0 0 320 150" role="img" aria-hidden="true"><rect width="320" height="150" rx="16"/><path d="M18 45 38 27l32 3 13 15-8 18 12 17-14 20-21-9-9-22-25-7Zm77 73 13-29 22-8 15 16-10 34-19 13Zm43-77 23-17 42 2 21 13 30-5 39 17-9 17-35 2-14 19-29-5-18 13-19-17-20-8Zm72 75 16-18 27 3 18 19-14 14-31-2Z"/><path class="map-grid" d="M0 50h320M0 100h320M80 0v150M160 0v150M240 0v150"/>${points}</svg>
+        <figcaption>Five stops across the day’s map</figcaption>
+      </figure>
+      <ol class="location-list">${locations.map((location, index) => `<li><span>${index + 1}</span><strong>${escapeHtml(location.name)}</strong></li>`).join('')}</ol>
+    </div>
+  </section>`;
+}
+
 export function todayView(data, options = {}) {
   const { spotlightId, minimumDate, maximumDate, calendarOpen, standingsLoading } = options;
   const isToday = data.date === maximumDate;
@@ -69,6 +88,8 @@ export function todayView(data, options = {}) {
       <div class="leader-list">${data.players.map(playerRow).join('')}</div>
       <p class="list-note"><span class="status-dot"></span>${data.players.length - notPlayed} played ${isToday ? 'today' : 'on this day'} <span>·</span> ${notPlayed} ${isToday ? 'still exploring' : 'did not play'}</p>
     </section>
+
+    ${isToday ? '' : locationTrail(data.date, data.locationsByDate?.[data.date]?.locations)}
 
     <section class="summary-section" aria-labelledby="summary-title">
       <div class="summary-heading"><h2 id="summary-title">${spotlight ? `${escapeHtml(spotlight.displayName)}’s last 30 days` : 'Last 30 days'}</h2><label class="player-select"><span>Player</span><select data-summary-select aria-label="Select player for 30-day summary">${data.players.map((player) => `<option value="${escapeHtml(player.id)}" ${player.id === spotlight?.id ? 'selected' : ''}>${escapeHtml(player.displayName)}</option>`).join('')}</select></label></div>

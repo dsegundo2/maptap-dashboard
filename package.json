@@ -6,7 +6,8 @@
   "engines": { "node": ">=22.12" },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "data:refresh": "node scripts/fetch-data.mjs",
+    "data:refresh": "node scripts/fetch-data.mjs && node scripts/fetch-locations.mjs",
+    "data:locations": "node scripts/fetch-locations.mjs",
     "og:generate": "node scripts/generate-og.mjs",
     "build": "npm run og:generate && vite build",
     "preview": "vite preview --host 127.0.0.1",
