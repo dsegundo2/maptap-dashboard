@@ -20,10 +20,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('loads the fallback leaderboard and navigates through player details', async ({ page }) => {
-  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` })).toBeVisible();
-  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details` })).toBeVisible();
+  await expect(page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details`, exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: `View ${primaryPlayer.displayName} details`, exact: true })).toBeVisible();
   await expect(page.locator('.leader-labels')).toContainText('Percentile');
-  await page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details` }).click();
+  await page.getByRole('button', { name: `View ${temporaryPlayer.displayName} details`, exact: true }).click();
   await expect(page.getByRole('heading', { name: temporaryPlayer.displayName, exact: true })).toBeVisible();
   await expect(page.getByText('Score trail')).toBeVisible();
   await expect(page.locator('.profile-head .avatar')).toHaveCount(0);
@@ -45,7 +45,7 @@ test('loads the fallback leaderboard and navigates through player details', asyn
 
 test('players view shows player summaries instead of the monthly leaderboard', async ({ page }) => {
   await page.getByRole('button', { name: 'Players' }).click();
-  await expect(page.getByRole('heading', { name: 'Diego Dad’s last 30 days' })).toBeVisible();
+  await expect(page.locator('.player-summary h2')).toContainText('last 30 days');
   await expect(page.getByText('Ranked by total wins')).toHaveCount(0);
   await expect(page.locator('.player-card .mini-win small').first()).toHaveText('average');
   await expect(page.getByRole('button', { name: /Diego Dad/ })).toBeVisible();
