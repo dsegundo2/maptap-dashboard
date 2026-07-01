@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { enabledPlayers } from '../src/lib/players.js';
+import playerRegistry from '../public/data/players.json' with { type: 'json' };
 
 describe('player registry', () => {
+  it('includes Diego Dad and no longer includes Eo2', () => {
+    const players = enabledPlayers(playerRegistry);
+    expect(players).toContainEqual(expect.objectContaining({ maptapUsername: 'Diego Dad', displayName: 'Diego Dad' }));
+    expect(players.some((player) => player.maptapUsername === 'Eo2')).toBe(false);
+  });
   it('filters disabled players without changing the registry format', () => {
     const players = enabledPlayers([
       { maptapUsername: 'Alpha', displayName: 'A', enabled: true },

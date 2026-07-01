@@ -27,11 +27,14 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
 ```
 
 - `maptapUsername` must exactly match the public MapTap nickname.
+- Profile URLs replace spaces with underscores. For a URL such as `https://maptap.gg/u/Diego_Dad`, use the visible profile name (`Diego Dad`) as `maptapUsername`, not the underscored URL slug.
 - `displayName` is the label shown throughout the dashboard.
 - Set `enabled` to `false` to temporarily hide a player, or remove the object permanently.
 - `temporary` is optional metadata for entries that will be removed later.
 
 The registry is validated for required fields, duplicates, and the 10-player limit. [`public/data/scores.json`](public/data/scores.json) is generated from this registry and should not be edited manually. Requests are deliberately spaced by 650 ms when there is more than one player.
+
+After editing the registry, run `asdf exec npm run data:refresh` and `asdf exec npm run test:ui` to refresh the fallback data and confirm every enabled player appears.
 
 ## Local development
 

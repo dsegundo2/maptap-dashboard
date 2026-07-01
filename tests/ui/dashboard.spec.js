@@ -48,6 +48,8 @@ test('players view shows the monthly top three and external MapTap link', async 
   await expect(page.getByRole('heading', { name: /leaderboard/ })).toBeVisible();
   await expect(page.getByText('Ranked by total wins')).toBeVisible();
   await expect(page.locator('.player-card .mini-win small').first()).toHaveText('average');
+  await expect(page.getByRole('button', { name: /Diego Dad/ })).toBeVisible();
+  await expect(page.getByText('Eo2', { exact: true })).toHaveCount(0);
   await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
   await expect(page.getByRole('button', { name: 'Trends' })).toHaveCount(0);
   const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });

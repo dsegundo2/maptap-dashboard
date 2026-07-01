@@ -1,52 +1,173 @@
 {
-  "generatedAt": "2026-06-30T04:03:15.785Z",
-  "date": "2026-06-29",
-  "globalPlayers": 291260,
+  "generatedAt": "2026-07-01T14:26:17.215Z",
+  "date": "2026-07-01",
+  "globalPlayers": 140818,
   "players": [
     {
-      "id": "MT6lKKGOZraR9jgHBgZTuucxPiE3",
-      "maptapUsername": "Eo2",
-      "displayName": "Eo2",
-      "score": 932,
-      "playedToday": true,
-      "globalRank": 36328,
-      "globalPercentile": 87,
+      "id": "bEf2VKh1oqO9eMyxFxZgBqnhfQE2",
+      "maptapUsername": "Diego Dad",
+      "displayName": "Diego Dad",
+      "score": null,
+      "playedToday": false,
+      "globalRank": null,
+      "globalPercentile": null,
+      "displayOrder": 0,
       "history": [
         {
-          "date": "2026-06-21",
-          "score": 885
+          "date": "2026-05-23",
+          "score": 943
         },
         {
-          "date": "2026-06-22",
-          "score": 964
+          "date": "2026-05-24",
+          "score": 938
         },
         {
-          "date": "2026-06-23",
-          "score": 913
+          "date": "2026-05-25",
+          "score": 902
         },
         {
-          "date": "2026-06-24",
-          "score": 982
+          "date": "2026-05-26",
+          "score": 587
         },
         {
-          "date": "2026-06-25",
-          "score": 935
+          "date": "2026-05-27",
+          "score": 865
         },
         {
-          "date": "2026-06-26",
+          "date": "2026-05-28",
+          "score": 944
+        },
+        {
+          "date": "2026-05-29",
+          "score": 748
+        },
+        {
+          "date": "2026-05-30",
           "score": 887
         },
         {
+          "date": "2026-05-31",
+          "score": 910
+        },
+        {
+          "date": "2026-06-01",
+          "score": 808
+        },
+        {
+          "date": "2026-06-02",
+          "score": 950
+        },
+        {
+          "date": "2026-06-03",
+          "score": 712
+        },
+        {
+          "date": "2026-06-04",
+          "score": 940
+        },
+        {
+          "date": "2026-06-05",
+          "score": 918
+        },
+        {
+          "date": "2026-06-06",
+          "score": 928
+        },
+        {
+          "date": "2026-06-07",
+          "score": 757
+        },
+        {
+          "date": "2026-06-08",
+          "score": 992
+        },
+        {
+          "date": "2026-06-09",
+          "score": 911
+        },
+        {
+          "date": "2026-06-10",
+          "score": 943
+        },
+        {
+          "date": "2026-06-11",
+          "score": 956
+        },
+        {
+          "date": "2026-06-12",
+          "score": 954
+        },
+        {
+          "date": "2026-06-13",
+          "score": 770
+        },
+        {
+          "date": "2026-06-14",
+          "score": 907
+        },
+        {
+          "date": "2026-06-15",
+          "score": 939
+        },
+        {
+          "date": "2026-06-16",
+          "score": 938
+        },
+        {
+          "date": "2026-06-17",
+          "score": 907
+        },
+        {
+          "date": "2026-06-18",
+          "score": 852
+        },
+        {
+          "date": "2026-06-19",
+          "score": 909
+        },
+        {
+          "date": "2026-06-20",
+          "score": 890
+        },
+        {
+          "date": "2026-06-21",
+          "score": 862
+        },
+        {
+          "date": "2026-06-22",
+          "score": 976
+        },
+        {
+          "date": "2026-06-23",
+          "score": 909
+        },
+        {
+          "date": "2026-06-24",
+          "score": 884
+        },
+        {
+          "date": "2026-06-25",
+          "score": 763
+        },
+        {
+          "date": "2026-06-26",
+          "score": 660
+        },
+        {
           "date": "2026-06-27",
-          "score": 989
+          "score": 783
         },
         {
           "date": "2026-06-28",
-          "score": 919
+          "score": 780
         },
         {
           "date": "2026-06-29",
-          "score": 932
+          "score": 875
+        },
+        {
+          "date": "2026-06-30",
+          "score": 884
         }
       ]
     },
@@ -54,10 +175,11 @@
       "id": "Q2bcCy2WqefdzweL7JpVuj7Y7Df2",
       "maptapUsername": "DiegoT",
       "displayName": "Diego Tomas",
-      "score": 906,
-      "playedToday": true,
-      "globalRank": 82472,
-      "globalPercentile": 71,
+      "score": null,
+      "playedToday": false,
+      "globalRank": null,
+      "globalPercentile": null,
+      "displayOrder": 1,
       "history": [
         {
           "date": "2026-04-24",
@@ -278,6 +400,10 @@
         {
           "date": "2026-06-29",
           "score": 906
+        },
+        {
+          "date": "2026-06-30",
+          "score": 841
         }
       ]
     }
