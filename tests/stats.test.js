@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compactHistory, dashboardForDate, dateKey, enrichDashboard, globalStanding, leaderboardDateRange, monthlyLeaderboard } from '../src/lib/stats.js';
+import { compactHistory, dashboardForDate, dateKey, enrichDashboard, globalStanding, leaderboardDateRange, monthlyLeaderboard, standingsCoverPlayers } from '../src/lib/stats.js';
 
 describe('dateKey', () => {
   it('always returns an ISO date in the configured timezone', () => {
@@ -16,6 +16,14 @@ describe('globalStanding', () => {
 
   it('returns nulls without a score', () => {
     expect(globalStanding(null, {})).toEqual({ rank: null, percentile: null });
+  });
+});
+
+describe('historical standing coverage', () => {
+  it('refetches when a newly configured scored player is absent from a cached day', () => {
+    const players = [{ id: 'dad', score: 884 }, { id: 'tomas', score: 841 }];
+    expect(standingsCoverPlayers({ tomas: { percentile: 45 } }, players)).toBe(false);
+    expect(standingsCoverPlayers({ dad: { percentile: 69 }, tomas: { percentile: 45 } }, players)).toBe(true);
   });
 });
 

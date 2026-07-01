@@ -61,12 +61,41 @@ function locationTrail(date, locations = []) {
   </section>`;
 }
 
+function playerSummary(data, spotlightId) {
+  const leader = data.players.find((player) => player.playedToday);
+  const spotlight = data.players.find((player) => player.id === spotlightId) || leader || data.players[0];
+  return `<section class="summary-section player-summary" aria-labelledby="summary-title">
+    <div class="summary-heading"><h2 id="summary-title">${spotlight ? `${escapeHtml(spotlight.displayName)}’s last 30 days` : 'Last 30 days'}</h2><label class="player-select"><span>Player</span><select data-summary-select aria-label="Select player for 30-day summary">${data.players.map((player) => `<option value="${escapeHtml(player.id)}" ${player.id === spotlight?.id ? 'selected' : ''}>${escapeHtml(player.displayName)}</option>`).join('')}</select></label></div>
+    <div class="summary-grid">
+      <div><span>Daily wins</span><strong>${spotlight?.summary.wins ?? 0}</strong><small>in the group</small></div>
+      <div><span>Best streak</span><strong>${spotlight?.summary.longestWinStreak ?? 0}</strong><small>days</small></div>
+      <div><span>Average</span><strong>${formatScore(spotlight?.summary.average)}</strong><small>points</small></div>
+      <div><span>Best score</span><strong>${formatScore(spotlight?.summary.best)}</strong><small>points</small></div>
+      <div><span>Games</span><strong>${spotlight?.summary.gamesPlayed ?? 0}</strong><small>played</small></div>
+      <div><span>Days missed</span><strong>${spotlight?.summary.daysMissed ?? 30}</strong><small>of 30</small></div>
+    </div>
+  </section>`;
+}
+
+function monthlyBoard(data, className = '') {
+  const monthly = monthlyLeaderboard(data);
+  const slots = Array.from({ length: 3 }, (_, index) => monthly.players[index] || null);
+  return `<section class="monthly-leaderboard ${className}" aria-labelledby="monthly-leaderboard-title">
+    <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div><span>Top 3</span></header>
+    <div class="monthly-ranks">${slots.map((entry, index) => entry ? `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="View ${escapeHtml(entry.displayName)} details, ranked ${index + 1}">
+      <span class="monthly-rank-number">${index + 1}</span>
+      <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
+      <span class="monthly-average"><strong>${entry.wins}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
+      ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
+    </button>` : `<div class="monthly-rank-row is-empty" aria-label="Rank ${index + 1} empty"><span class="monthly-rank-number">${index + 1}</span><span class="monthly-player">—</span><span class="monthly-average">—</span><span class="monthly-movement neutral">—</span></div>`).join('')}</div>
+  </section>`;
+}
+
 export function todayView(data, options = {}) {
-  const { spotlightId, minimumDate, maximumDate, calendarOpen, standingsLoading } = options;
+  const { minimumDate, maximumDate, calendarOpen, standingsLoading } = options;
   const isToday = data.date === maximumDate;
   const leader = data.players.find((player) => player.playedToday);
   const notPlayed = data.players.filter((player) => !player.playedToday).length;
-  const spotlight = data.players.find((player) => player.id === spotlightId) || leader || data.players[0];
   return `<div class="view today-view" data-view="today">
     <section class="winner-hero ${leader ? '' : 'is-empty'}" aria-label="Daily winner">
       <div class="mountain-scene" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -91,17 +120,7 @@ export function todayView(data, options = {}) {
 
     ${isToday ? '' : locationTrail(data.date, data.locationsByDate?.[data.date]?.locations)}
 
-    <section class="summary-section" aria-labelledby="summary-title">
-      <div class="summary-heading"><h2 id="summary-title">${spotlight ? `${escapeHtml(spotlight.displayName)}’s last 30 days` : 'Last 30 days'}</h2><label class="player-select"><span>Player</span><select data-summary-select aria-label="Select player for 30-day summary">${data.players.map((player) => `<option value="${escapeHtml(player.id)}" ${player.id === spotlight?.id ? 'selected' : ''}>${escapeHtml(player.displayName)}</option>`).join('')}</select></label></div>
-      <div class="summary-grid">
-        <div><span>Daily wins</span><strong>${spotlight?.summary.wins ?? 0}</strong><small>in the group</small></div>
-        <div><span>Best streak</span><strong>${spotlight?.summary.longestWinStreak ?? 0}</strong><small>days</small></div>
-        <div><span>Average</span><strong>${formatScore(spotlight?.summary.average)}</strong><small>points</small></div>
-        <div><span>Best score</span><strong>${formatScore(spotlight?.summary.best)}</strong><small>points</small></div>
-        <div><span>Games</span><strong>${spotlight?.summary.gamesPlayed ?? 0}</strong><small>played</small></div>
-        <div><span>Days missed</span><strong>${spotlight?.summary.daysMissed ?? 30}</strong><small>of 30</small></div>
-      </div>
-    </section>
+    ${monthlyBoard(data, 'monthly-home')}
     ${calendarOpen ? calendarPicker(minimumDate, maximumDate, data.date) : ''}
   </div>`;
 }
@@ -114,24 +133,14 @@ function playerCard(player) {
   </button>`;
 }
 
-export function playersView(data, selectedId) {
+export function playersView(data, selectedId, options = {}) {
   const player = data.players.find((item) => item.id === selectedId);
   if (player) return playerDetail(player, data.date);
-  const monthly = monthlyLeaderboard(data);
-  const slots = Array.from({ length: 3 }, (_, index) => monthly.players[index] || null);
   const playerList = data.players.toSorted((a, b) => (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
   return `<div class="view content-view" data-view="players">
-    <section class="monthly-leaderboard" aria-labelledby="monthly-leaderboard-title">
-      <header><div><h1 id="monthly-leaderboard-title">${monthly.label} leaderboard</h1><p>Ranked by total wins</p></div><span>Top 3</span></header>
-      <div class="monthly-ranks">${slots.map((entry, index) => entry ? `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="View ${escapeHtml(entry.displayName)} details, ranked ${index + 1}">
-        <span class="monthly-rank-number">${index + 1}</span>
-        <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
-        <span class="monthly-average"><strong>${entry.wins}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
-        ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
-      </button>` : `<div class="monthly-rank-row is-empty" aria-label="Rank ${index + 1} empty"><span class="monthly-rank-number">${index + 1}</span><span class="monthly-player">—</span><span class="monthly-average">—</span><span class="monthly-movement neutral">—</span></div>`).join('')}</div>
-    </section>
     <header class="players-heading"><div><h1>Players</h1><p>${data.players.length} total</p></div></header>
     <section class="player-list" aria-label="Players">${playerList.map(playerCard).join('')}</section>
+    ${playerSummary(data, options.spotlightId)}
   </div>`;
 }
 

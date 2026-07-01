@@ -43,14 +43,14 @@ test('loads the fallback leaderboard and navigates through player details', asyn
   await expect(page.getByRole('heading', { name: 'Players', exact: true })).toBeVisible();
 });
 
-test('players view shows the monthly top three and external MapTap link', async ({ page }) => {
+test('players view shows player summaries instead of the monthly leaderboard', async ({ page }) => {
   await page.getByRole('button', { name: 'Players' }).click();
-  await expect(page.getByRole('heading', { name: /leaderboard/ })).toBeVisible();
-  await expect(page.getByText('Ranked by total wins')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Diego Dad’s last 30 days' })).toBeVisible();
+  await expect(page.getByText('Ranked by total wins')).toHaveCount(0);
   await expect(page.locator('.player-card .mini-win small').first()).toHaveText('average');
   await expect(page.getByRole('button', { name: /Diego Dad/ })).toBeVisible();
   await expect(page.getByText('Eo2', { exact: true })).toHaveCount(0);
-  await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
+  await expect(page.locator('.monthly-rank-row')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Trends' })).toHaveCount(0);
   const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });
   await expect(mapTapLink).toHaveAttribute('href', 'https://maptap.gg');
@@ -87,7 +87,7 @@ test('navigates previous and next leaderboard days', async ({ page }) => {
   await expect(page.locator('.location-list li')).toHaveCount(5);
   await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText(shortDate(previousDate));
   for (const player of playerRegistry) {
-    const row = page.getByRole('button', { name: `View ${player.displayName} details` });
+    const row = page.getByRole('button', { name: `View ${player.displayName} details`, exact: true });
     await expect(row).toContainText(Number.isFinite(scoreOn(player, previousDate)) ? 'Played' : 'Not yet');
   }
   await expect(page.getByRole('button', { name: 'Jump to today' })).toBeEnabled();
@@ -109,7 +109,7 @@ test('calendar selects the rolling lower bound with one completed score', async 
   await expect(page.getByRole('heading', { name: leader.displayName, exact: true })).toBeVisible();
   for (const player of playerRegistry) {
     const score = scoreOn(player, minimumDate);
-    await expect(page.getByRole('button', { name: `View ${player.displayName} details` })).toContainText(Number.isFinite(score) ? score.toLocaleString() : 'Not yet');
+    await expect(page.getByRole('button', { name: `View ${player.displayName} details`, exact: true })).toContainText(Number.isFinite(score) ? score.toLocaleString() : 'Not yet');
   }
   await expect(page.getByRole('button', { name: 'Previous day' })).toBeDisabled();
 });
@@ -149,8 +149,8 @@ test('keeps all nine players directly visible without pagination', async ({ page
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'View Player 9 details' })).toBeVisible();
-  expect(await page.getByRole('combobox', { name: 'Select player for 30-day summary' }).locator('option').count()).toBe(9);
   await page.getByRole('button', { name: 'Players' }).click();
+  expect(await page.getByRole('combobox', { name: 'Select player for 30-day summary' }).locator('option').count()).toBe(9);
   expect(await page.locator('.player-list [data-player]').count()).toBe(9);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
@@ -165,7 +165,6 @@ test('monthly leaderboard handles movement and empty slots', async ({ page }) =>
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-07-02', globalPlayers: 1000, players } }));
   await page.route('**/data/players.json', (route) => route.fulfill({ json: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) }));
   await page.goto('/');
-  await page.getByRole('button', { name: 'Players' }).click();
   await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
   await expect(page.getByLabel('Moved up 1 place')).toBeVisible();
   await expect(page.getByLabel('Moved down 1 place')).toBeVisible();

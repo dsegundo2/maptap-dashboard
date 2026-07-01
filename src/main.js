@@ -1,6 +1,6 @@
 import './styles.css';
 import { fetchLiveDashboard, fetchStandingsForDate, fetchStaticDashboard, readCache, writeCache } from './lib/data.js';
-import { addDays, dashboardForDate, leaderboardDateRange } from './lib/stats.js';
+import { addDays, dashboardForDate, leaderboardDateRange, standingsCoverPlayers } from './lib/stats.js';
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
 import { playersView, todayView } from './ui/views.js';
@@ -55,7 +55,7 @@ function render() {
       calendarOpen: state.calendarOpen,
       standingsLoading: state.standingsLoading
     }),
-    players: () => playersView(state.data, state.selectedPlayer)
+    players: () => playersView(state.data, state.selectedPlayer, { spotlightId: state.spotlightPlayer })
   };
   app.innerHTML = shell(views[state.view]());
 }
@@ -77,6 +77,9 @@ async function refresh({ quiet = false } = {}) {
   if (!quiet) render();
   try {
     const data = await fetchLiveDashboard();
+    const previousRoster = state.data?.players.map((player) => player.id).toSorted().join('\n');
+    const nextRoster = data.players.map((player) => player.id).toSorted().join('\n');
+    if (previousRoster && previousRoster !== nextRoster) state.standingsByDate = {};
     state.data = data;
     state.source = 'live';
     writeCache(data);
@@ -123,10 +126,12 @@ async function selectDate(date) {
   if (date < range.minimum || date > range.maximum) return;
   state.selectedDate = date;
   state.calendarOpen = false;
-  state.standingsLoading = date !== state.data.date && !state.standingsByDate[date];
+  const selected = dashboardForDate(state.data, date);
+  const cachedStandings = state.standingsByDate[date];
+  const standingsComplete = standingsCoverPlayers(cachedStandings, selected.players);
+  state.standingsLoading = date !== state.data.date && !standingsComplete;
   render();
   if (!state.standingsLoading) return;
-  const selected = dashboardForDate(state.data, date);
   const standings = await fetchStandingsForDate(date, selected.players);
   state.standingsByDate[date] = standings;
   if (state.selectedDate === date) {

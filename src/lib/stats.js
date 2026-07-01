@@ -115,6 +115,12 @@ export function globalStanding(score, leaderboard = {}) {
   };
 }
 
+export function standingsCoverPlayers(standings, players = []) {
+  return players
+    .filter((player) => Number.isFinite(player.score))
+    .every((player) => standings && Object.hasOwn(standings, player.id));
+}
+
 function rangeDates(endDate, days) {
   const end = new Date(`${endDate}T12:00:00Z`);
   return Array.from({ length: days }, (_, index) => {
