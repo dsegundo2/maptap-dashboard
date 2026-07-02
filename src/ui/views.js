@@ -2,6 +2,7 @@ import { icon } from './icons.js';
 import { escapeHtml, formatDate, formatScore } from './format.js';
 import { sparkline } from './charts.js';
 import { monthlyLeaderboard } from '../lib/stats.js';
+import { projectLocation, WORLD_LAND_PATH } from './world-map.js';
 
 function rankMedal(index) {
   const tones = ['gold', 'silver', 'bronze'];
@@ -49,17 +50,17 @@ function calendarPicker(minimum, maximum, selected) {
 
 function locationTrail(date, locations = []) {
   if (!locations.length) return '';
-  const points = locations.map((location, index) => {
-    const x = 16 + ((Number(location.lng) + 180) / 360) * 288;
-    const y = 12 + ((90 - Number(location.lat)) / 180) * 126;
+  const projectedLocations = locations.map((location) => projectLocation(location.lat, location.lng));
+  const route = projectedLocations.map(({ x, y }, index) => `${index ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join('');
+  const points = projectedLocations.map(({ x, y }, index) => {
     return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="10" class="location-pulse"/><circle r="7" class="location-marker"/><text y="3.2">${index + 1}</text></g>`;
   }).join('');
   return `<section class="location-trail" aria-labelledby="location-trail-title">
     <header><div><p>Round locations</p><h2 id="location-trail-title">Where the trail went</h2></div><span>${formatDate(date, { year: undefined })}</span></header>
     <div class="location-trail-layout">
       <figure class="location-map" aria-label="World map showing the five round locations">
-        <svg viewBox="0 0 320 150" role="img" aria-hidden="true"><rect width="320" height="150" rx="16"/><path d="M18 45 38 27l32 3 13 15-8 18 12 17-14 20-21-9-9-22-25-7Zm77 73 13-29 22-8 15 16-10 34-19 13Zm43-77 23-17 42 2 21 13 30-5 39 17-9 17-35 2-14 19-29-5-18 13-19-17-20-8Zm72 75 16-18 27 3 18 19-14 14-31-2Z"/><path class="map-grid" d="M0 50h320M0 100h320M80 0v150M160 0v150M240 0v150"/>${points}</svg>
-        <figcaption>Five stops across the day’s map</figcaption>
+        <svg viewBox="0 0 320 150" role="img"><title>Five round locations plotted by latitude and longitude</title><rect width="320" height="150" rx="16"/><path class="map-grid" d="M10 52.7h300M10 97.3h300M85 8v134M160 8v134M235 8v134"/><path class="world-land" d="${WORLD_LAND_PATH}"/><path class="location-route" d="${route}"/>${points}</svg>
+        <figcaption>Plotted from each location’s coordinates</figcaption>
       </figure>
       <ol class="location-list">${locations.map((location, index) => `<li><span>${index + 1}</span><strong>${escapeHtml(location.name)}</strong></li>`).join('')}</ol>
     </div>

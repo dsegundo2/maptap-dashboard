@@ -96,8 +96,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .location-map { margin: 0; }
 .location-map svg { display: block; width: 100%; height: auto; }
 .location-map svg > rect { fill: #0a3527; stroke: rgba(255,255,255,.12); }
-.location-map svg > path:not(.map-grid) { fill: #416f51; opacity: .68; }
+.location-map .world-land { fill: #416f51; opacity: .78; }
 .location-map .map-grid { fill: none; stroke: #d9e6dc; stroke-width: .5; opacity: .1; }
+.location-map .location-route { fill: none; stroke: #f4bc35; stroke-width: .8; stroke-dasharray: 2 2.5; opacity: .44; }
 .location-map .location-pulse { fill: #f4bc35; opacity: .2; }
 .location-map .location-marker { fill: #f4bc35; stroke: #fff7dc; stroke-width: 1.2; }
 .location-map text { fill: #153b2a; font: 900 8px Inter, sans-serif; text-anchor: middle; }
