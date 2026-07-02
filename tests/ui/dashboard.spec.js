@@ -161,7 +161,7 @@ test('keeps all nine players directly visible without pagination', async ({ page
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Select Player 9 on the Players tab' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Select Player 9 on the Players tab', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Players', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Select player for 30-day summary' })).toHaveCount(0);
   expect(await page.locator('.player-list [data-player]').count()).toBe(9);
@@ -169,7 +169,7 @@ test('keeps all nine players directly visible without pagination', async ({ page
   expect(overflow).toBe(false);
 });
 
-test('monthly leaderboard handles movement and empty slots', async ({ page }) => {
+test('monthly leaderboard handles movement without placeholder slots', async ({ page }) => {
   const players = [
     { id: 'amy', maptapUsername: 'Amy', displayName: 'Amy', history: [{ date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 700 }] },
     { id: 'bob', maptapUsername: 'Bob', displayName: 'Bob', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 950 }] },
@@ -181,7 +181,28 @@ test('monthly leaderboard handles movement and empty slots', async ({ page }) =>
   await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
   await expect(page.getByLabel('Moved up 1 place')).toBeVisible();
   await expect(page.getByLabel('Moved down 1 place')).toBeVisible();
-  await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(1);
+  await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
+  await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(0);
+  await expect(page.locator('.monthly-rank-row.rank-3')).toContainText('0 games · — avg');
+});
+
+test('June leaderboard shows every ranked player and highlights only the top three', async ({ page }) => {
+  const players = Array.from({ length: 6 }, (_, index) => ({
+    id: `june-${index + 1}`,
+    maptapUsername: `June${index + 1}`,
+    displayName: `June Player ${index + 1}`,
+    score: 900 - index * 10,
+    playedToday: true,
+    history: [{ date: '2026-06-30', score: 900 - index * 10 }]
+  }));
+  await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-06-30', globalPlayers: 1000, players } }));
+  await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'June leaderboard' })).toBeVisible();
+  await expect(page.locator('.monthly-rank-row')).toHaveCount(6);
+  await expect(page.locator('.monthly-rank-row .rank.gold, .monthly-rank-row .rank.silver, .monthly-rank-row .rank.bronze')).toHaveCount(3);
+  await expect(page.locator('.monthly-rank-row.rank-4 .rank')).toHaveText('4');
+  await expect(page.locator('.monthly-rank-row.rank-4 .rank')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });
 
 test('every configured group URL loads its configured roster', async ({ page }) => {

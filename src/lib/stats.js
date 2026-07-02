@@ -19,17 +19,23 @@ function monthStats(player, month, throughDate) {
   const scores = (player.history || [])
     .filter((game) => game.date.startsWith(month) && game.date <= throughDate && Number.isFinite(game.score))
     .map((game) => ({ date: game.date, score: game.score }));
-  return scores.length ? { scores, average: scores.reduce((sum, game) => sum + game.score, 0) / scores.length, gamesPlayed: scores.length } : null;
+  return {
+    scores,
+    average: scores.length ? scores.reduce((sum, game) => sum + game.score, 0) / scores.length : null,
+    gamesPlayed: scores.length
+  };
 }
 
 function rankMonthly(entries) {
-  return entries.toSorted((a, b) => b.wins - a.wins || b.average - a.average || a.displayName.localeCompare(b.displayName));
+  return entries.toSorted((a, b) => b.wins - a.wins
+    || (Number.isFinite(b.average) ? b.average : -1) - (Number.isFinite(a.average) ? a.average : -1)
+    || a.displayName.localeCompare(b.displayName));
 }
 
 function monthlyEntries(data, month, throughDate) {
-  const stats = data.players.flatMap((player) => {
+  const stats = data.players.map((player) => {
     const summary = monthStats(player, month, throughDate);
-    return summary ? [{ id: player.id, displayName: player.displayName, ...summary }] : [];
+    return { id: player.id, displayName: player.displayName, ...summary };
   });
   const wins = new Map(stats.map((player) => [player.id, 0]));
   const dates = [...new Set(stats.flatMap((player) => player.scores.map((game) => game.date)))];
@@ -53,10 +59,10 @@ export function monthlyLeaderboard(data, throughDate = data.date) {
   return {
     month,
     label: new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(`${throughDate}T12:00:00Z`)),
-    players: current.slice(0, 3).map((player, index) => {
+    players: current.map((player, index) => {
       const rank = index + 1;
       const previousRank = previousRanks.get(player.id);
-      return { ...player, rank, average: Math.round(player.average), movement: previousRank ? previousRank - rank : 0 };
+      return { ...player, rank, average: Number.isFinite(player.average) ? Math.round(player.average) : null, movement: previousRank ? previousRank - rank : 0 };
     })
   };
 }

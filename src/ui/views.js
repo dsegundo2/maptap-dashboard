@@ -87,15 +87,14 @@ function playerSummary(data, spotlightId) {
 
 function monthlyBoard(data, className = '') {
   const monthly = monthlyLeaderboard(data);
-  const slots = Array.from({ length: 3 }, (_, index) => monthly.players[index] || null);
   return `<section class="monthly-leaderboard ${className}" aria-labelledby="monthly-leaderboard-title">
-    <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div><span>Top 3</span></header>
-    <div class="monthly-ranks">${slots.map((entry, index) => entry ? `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${index + 1}">
+    <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div><span>Full standings</span></header>
+    <div class="monthly-ranks">${monthly.players.map((entry, index) => `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${index + 1}">
       ${rankMedal(index)}
       <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
       <span class="monthly-average"><strong>${entry.wins}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
       ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
-    </button>` : `<div class="monthly-rank-row is-empty" aria-label="Rank ${index + 1} empty">${rankMedal(index)}<span class="monthly-player">—</span><span class="monthly-average">—</span><span class="monthly-movement neutral">—</span></div>`).join('')}</div>
+    </button>`).join('')}</div>
   </section>`;
 }
 

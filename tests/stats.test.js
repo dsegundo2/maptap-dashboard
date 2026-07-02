@@ -84,7 +84,18 @@ describe('monthlyLeaderboard', () => {
     ]);
   });
 
-  it('returns no ranked players when the calendar month is empty', () => {
-    expect(monthlyLeaderboard({ date: '2026-07-01', players: [{ id: 'a', displayName: 'A', history: [{ date: '2026-06-30', score: 900 }] }] }).players).toEqual([]);
+  it('keeps players without games at the bottom of the full leaderboard', () => {
+    expect(monthlyLeaderboard({ date: '2026-07-01', players: [{ id: 'a', displayName: 'A', history: [{ date: '2026-06-30', score: 900 }] }] }).players)
+      .toEqual([{ id: 'a', displayName: 'A', average: null, gamesPlayed: 0, wins: 0, rank: 1, movement: 0 }]);
+  });
+
+  it('returns the entire monthly leaderboard instead of only the top three', () => {
+    const players = Array.from({ length: 6 }, (_, index) => ({
+      id: `p${index + 1}`,
+      displayName: `Player ${index + 1}`,
+      history: [{ date: '2026-06-30', score: 900 - index * 10 }]
+    }));
+    expect(monthlyLeaderboard({ date: '2026-06-30', players }).players.map((player) => player.id))
+      .toEqual(['p1', 'p2', 'p3', 'p4', 'p5', 'p6']);
   });
 });
