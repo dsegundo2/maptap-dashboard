@@ -5,6 +5,9 @@ import { enabledGroups, resolveGroup } from '../../src/lib/groups.js';
 
 const configuredGroups = enabledGroups(groupRegistry);
 const defaultGroup = resolveGroup(groupRegistry);
+const routeBase = process.env.GITHUB_ACTIONS && process.env.GITHUB_REPOSITORY
+  ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}`
+  : '';
 const playerRegistry = defaultGroup.players;
 const [temporaryPlayer, primaryPlayer] = playerRegistry;
 const addDays = (date, amount) => {
@@ -182,10 +185,6 @@ test('monthly leaderboard handles movement and empty slots', async ({ page }) =>
 });
 
 test('every configured group URL loads its configured roster', async ({ page }) => {
-  const routeBase = process.env.GITHUB_ACTIONS && process.env.GITHUB_REPOSITORY
-    ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}`
-    : '';
-
   for (const group of configuredGroups) {
     await page.goto(`${routeBase}/${group.id}`);
     await expect(page.locator('.brand')).toContainText(group.name);
@@ -203,12 +202,12 @@ test('shares the selected day as a group-specific website link', async ({ page }
       value: async (payload) => { window.sharedPayload = payload; }
     });
   });
-  await page.goto('/SB');
+  await page.goto(`${routeBase}/SB`);
   await expect(page.locator('.brand')).toContainText('SB');
   await page.getByRole('button', { name: 'Share' }).click();
   await expect.poll(() => page.evaluate(() => window.sharedPayload)).not.toBeNull();
   const payload = await page.evaluate(() => window.sharedPayload);
-  expect(payload.url).toBe(`http://127.0.0.1:4179/SB/${scoreSnapshot.date}/`);
+  expect(payload.url).toBe(`http://127.0.0.1:4179${routeBase}/SB/${scoreSnapshot.date}/`);
   expect(payload.title).toContain('SB MapTap leaderboard');
   expect(payload).not.toHaveProperty('files');
 });
