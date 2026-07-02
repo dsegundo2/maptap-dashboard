@@ -139,7 +139,7 @@ test('renders a clear empty state when no one has a score', async ({ page }) => 
   await page.goto('/?date=2026-06-01');
   await expect(page.getByRole('heading', { name: 'No scores yet' })).toBeVisible();
   await expect(page.getByText('No one in the group played.')).toBeVisible();
-  await expect(page.locator('.leader-row .played-state')).toHaveText(['Not yet', 'Not yet']);
+  await expect(page.locator('.leader-row .played-state')).toHaveText(playerRegistry.map(() => 'Not yet'));
 });
 
 test('keeps all nine players directly visible without pagination', async ({ page }) => {
@@ -154,6 +154,7 @@ test('keeps all nine players directly visible without pagination', async ({ page
     history: [{ date: '2026-06-29', score: 990 - index * 10 }]
   }));
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-06-29', globalPlayers: 1000, players } }));
+  await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();

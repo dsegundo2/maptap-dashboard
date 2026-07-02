@@ -91,9 +91,24 @@ export async function fetchStaticDashboard(groupId) {
   ]);
   const group = resolveGroup(groupRegistry, groupId);
   const configuredPlayers = group.players;
-  const order = new Map(configuredPlayers.map((player, index) => [player.maptapUsername, index]));
   const sourcePlayers = data.groups?.[group.id]?.players || (group.id === groupRegistry.defaultGroup ? data.players : []);
-  const players = sourcePlayers.map((player) => ({ ...player, displayOrder: order.get(player.maptapUsername) ?? Number.MAX_SAFE_INTEGER }));
+  const playersByUsername = new Map(sourcePlayers.map((player) => [player.maptapUsername, player]));
+  const players = configuredPlayers.map((configuredPlayer, displayOrder) => {
+    const player = playersByUsername.get(configuredPlayer.maptapUsername);
+    return player
+      ? { ...player, displayName: configuredPlayer.displayName, displayOrder }
+      : {
+          id: `configured:${configuredPlayer.maptapUsername}`,
+          maptapUsername: configuredPlayer.maptapUsername,
+          displayName: configuredPlayer.displayName,
+          score: null,
+          playedToday: false,
+          globalRank: null,
+          globalPercentile: null,
+          displayOrder,
+          history: []
+        };
+  });
   return { ...enrichDashboard({ ...data, players, locationsByDate: locationArchive.dates || {}, groupId: group.id, groupName: group.name }, config.competitionWindowDays), configuredPlayers };
 }
 
