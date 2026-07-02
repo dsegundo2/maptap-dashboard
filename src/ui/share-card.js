@@ -1,5 +1,10 @@
 import { escapeHtml, formatDate, formatScore } from './format.js';
 
+export function shareUrlForDate(location, basePath, groupId, date) {
+  const segments = [basePath, groupId, date].filter(Boolean).map((value) => encodeURIComponent(value));
+  return new URL(`/${segments.join('/')}/`, location.origin).href;
+}
+
 export function shareCardSvg(data) {
   const leaders = data.players.filter((player) => player.playedToday).slice(0, 3);
   const date = formatDate(data.date, { month: 'long' });

@@ -4,7 +4,7 @@ import { addDays, dashboardForDate, leaderboardDateRange, standingsCoverPlayers 
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
 import { playersView, todayView } from './ui/views.js';
-import { shareCardFile } from './ui/share-card.js';
+import { shareUrlForDate } from './ui/share-card.js';
 
 const app = document.querySelector('#app');
 const basePath = import.meta.env.BASE_URL.replace(/^\/|\/$/g, '');
@@ -105,17 +105,14 @@ async function shareSelectedDate() {
   const data = await refresh({ quiet: true });
   const selectedData = dashboardForDate(data, state.selectedDate, state.standingsByDate[state.selectedDate]);
   try {
-    const file = await shareCardFile(selectedData);
-    if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
-      await navigator.share({ files: [file] });
+    const url = shareUrlForDate(window.location, basePath, selectedData.groupId, selectedData.date);
+    const title = `${selectedData.groupName} MapTap leaderboard — ${formatDate(selectedData.date, { month: 'long' })}`;
+    if (navigator.share) {
+      await navigator.share({ title, url });
       setMessage('Shared with fresh scores.');
     } else {
-      const download = document.createElement('a');
-      download.href = URL.createObjectURL(file);
-      download.download = file.name;
-      download.click();
-      window.setTimeout(() => URL.revokeObjectURL(download.href), 1000);
-      setMessage('Leaderboard image saved.');
+      await navigator.clipboard.writeText(url);
+      setMessage('Leaderboard link copied.');
     }
   } catch (error) {
     if (error.name !== 'AbortError') setMessage('Sharing was unavailable. Try again.');
@@ -259,7 +256,9 @@ async function init() {
     }
   }
   render();
-  const requestedDate = new URLSearchParams(window.location.search).get('date');
+  const groupRouteIndex = requestedGroup ? routeParts.findIndex((part) => part.toLowerCase() === requestedGroup.toLowerCase()) : -1;
+  const routeDate = groupRouteIndex >= 0 ? routeParts[groupRouteIndex + 1] : null;
+  const requestedDate = routeDate || new URLSearchParams(window.location.search).get('date');
   const range = leaderboardDateRange(state.data?.date || '2026-06-01');
   if (requestedDate && requestedDate >= range.minimum && requestedDate <= range.maximum) state.selectedDate = requestedDate;
   else state.selectedDate = state.data?.date || null;

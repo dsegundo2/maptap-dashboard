@@ -8,10 +8,10 @@ A mobile-first, login-free dashboard for comparing public [MapTap](https://mapta
 - **Named summaries:** 30-day stats always belong to an explicitly selected player.
 - **Historical leaderboards:** previous/next arrows and an accessible calendar cover the rolling 30-day window, never earlier than June 1, 2026, including partial and empty days.
 - **Spoiler-safe location trails:** past days show MapTap’s five round locations on a compact world map and numbered list. Today’s locations are never shipped into the rendered view.
-- **Fresh in the browser:** each page load revalidates public profiles against MapTap. A manual refresh bypasses the daily leaderboard cache URL and Share refreshes before creating its image.
+- **Fresh in the browser:** each page load revalidates public profiles against MapTap. A manual refresh bypasses the daily leaderboard cache URL and Share refreshes before sending the dated link.
 - **Resilient on static hosting:** `public/data/scores.json` is the most recent generated fallback. A failed live request never blanks the dashboard.
 - **Honest standings:** exact rank is used when MapTap publishes the player in its top list; otherwise rank and percentile use MapTap’s own public histogram method and are treated as estimates.
-- **Native image sharing:** the Web Share payload is a purpose-built PNG with the selected day’s leaders and no accompanying message text. Browsers without file sharing download the image instead.
+- **Group-specific link sharing:** Share sends the selected group/day website URL. Each dated route has a purpose-built scoreboard preview image, so Messages and social apps show the correct group instead of a generic attachment. Browsers without native sharing copy the link.
 
 ## Manage groups and players
 
@@ -81,8 +81,10 @@ No private credentials, scraping proxy, backend, or user login is required.
 
 [`ci.yml`](.github/workflows/ci.yml) runs lint, unit tests, production build, and Chromium UI tests on pull requests and pushes to `main`.
 
+[`release.yml`](.github/workflows/release.yml) runs Release Please on every push to `main`. Conventional Commit prefixes determine semantic versions (`fix:` patch, `feat:` minor, and `feat!:` or `BREAKING CHANGE:` major). It maintains a release pull request with generated notes; merging that pull request creates the version tag and GitHub Release automatically.
+
 In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**.
 
-## Static-hosting limitation
+## Share previews on static hosting
 
-GitHub Pages cannot generate dynamic assets on its server. The browser therefore renders the selected day’s leaderboard image at share time; the scheduled workflow still refreshes the site’s fallback data and general Open Graph preview hourly.
+The build generates Open Graph images and HTML entry routes for each group and each available day in the rolling 30-day data. That lets static GitHub Pages serve group-specific link previews without a backend.

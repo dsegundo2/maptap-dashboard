@@ -1,37 +1,7 @@
 {
-  "generatedAt": "2026-07-01T21:34:52.420Z",
-  "throughDate": "2026-07-01",
+  "generatedAt": "2026-07-02T19:24:23.743Z",
+  "throughDate": "2026-07-02",
   "dates": {
-    "2026-06-02": {
-      "dayKey": "June2",
-      "locations": [
-        {
-          "name": "Oakland, California",
-          "lat": 37.8044,
-          "lng": -122.2712
-        },
-        {
-          "name": "Buffalo, New York",
-          "lat": 42.8864,
-          "lng": -78.8784
-        },
-        {
-          "name": "Berlin, Germany",
-          "lat": 52.52,
-          "lng": 13.405
-        },
-        {
-          "name": "Giza, Egypt",
-          "lat": 29.9792,
-          "lng": 31.1342
-        },
-        {
-          "name": "Lima, Peru",
-          "lat": -12.0464,
-          "lng": -77.0428
-        }
-      ]
-    },
     "2026-06-03": {
       "dayKey": "June3",
       "locations": [
@@ -869,6 +839,36 @@
           "name": "Santa Cruz de Tenerife, Canary Islands, Spain",
           "lat": 28.4636,
           "lng": -16.2518
+        }
+      ]
+    },
+    "2026-07-01": {
+      "dayKey": "July1",
+      "locations": [
+        {
+          "name": "Newark, New Jersey",
+          "lat": 40.743,
+          "lng": -74.1724
+        },
+        {
+          "name": "Tokyo, Japan",
+          "lat": 35.6764,
+          "lng": 139.65
+        },
+        {
+          "name": "Charlottetown, Prince Edward Island, Canada",
+          "lat": 46.2382,
+          "lng": -63.1311
+        },
+        {
+          "name": "Gaborone, Botswana",
+          "lat": -24.6282,
+          "lng": 25.9231
+        },
+        {
+          "name": "Darwin, Australia",
+          "lat": -12.4634,
+          "lng": 130.8456
         }
       ]
     }

@@ -194,3 +194,21 @@ test('every configured group URL loads its configured roster', async ({ page }) 
     }
   }
 });
+
+test('shares the selected day as a group-specific website link', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sharedPayload = null;
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async (payload) => { window.sharedPayload = payload; }
+    });
+  });
+  await page.goto('/SB');
+  await expect(page.locator('.brand')).toContainText('SB');
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect.poll(() => page.evaluate(() => window.sharedPayload)).not.toBeNull();
+  const payload = await page.evaluate(() => window.sharedPayload);
+  expect(payload.url).toBe(`http://127.0.0.1:4179/SB/${scoreSnapshot.date}/`);
+  expect(payload.title).toContain('SB MapTap leaderboard');
+  expect(payload).not.toHaveProperty('files');
+});

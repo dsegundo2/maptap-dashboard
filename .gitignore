@@ -4,3 +4,5 @@ playwright-report/
 test-results/
 .DS_Store
 *.log
+public/assets/og/
+public/assets/og-manifest.json
