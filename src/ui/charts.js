@@ -13,18 +13,27 @@ function chartBounds(scores) {
   return { lower, upper };
 }
 
-export function sparkline(history = [], { width = 320, height = 112, label = 'Score history' } = {}) {
-  const values = history.slice(-30).filter((game) => Number.isFinite(game.score) && game.score > 0);
+export function sparkline(history = [], { width = 320, height = 112, label = 'Score history', endDate } = {}) {
+  const datedHistory = history.filter((game) => /^\d{4}-\d{2}-\d{2}$/.test(game.date));
+  const windowEnd = new Date(`${endDate || datedHistory.at(-1)?.date}T12:00:00Z`);
+  const windowStart = new Date(windowEnd);
+  windowStart.setUTCDate(windowEnd.getUTCDate() - 29);
+  const values = datedHistory.filter((game) => {
+    const date = new Date(`${game.date}T12:00:00Z`);
+    return date >= windowStart && date <= windowEnd && Number.isFinite(game.score) && game.score > 0;
+  });
   if (values.length < 2) return '<div class="chart-empty">Play two days to unlock a trend.</div>';
   const { lower, upper } = chartBounds(values.map((game) => game.score));
   const plot = { left: 37, right: width - 8, top: 8, bottom: height - 10 };
-  const points = values.map((game, index) => {
-    const x = plot.left + (index / (values.length - 1)) * (plot.right - plot.left);
+  const windowDuration = windowEnd - windowStart;
+  const points = values.map((game) => {
+    const elapsed = new Date(`${game.date}T12:00:00Z`) - windowStart;
+    const x = plot.left + (elapsed / windowDuration) * (plot.right - plot.left);
     const y = plot.top + ((upper - game.score) / (upper - lower)) * (plot.bottom - plot.top);
     return { x, y, ...game };
   });
   const polyline = points.map(({ x, y }) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-  const area = `${plot.left},${plot.bottom} ${polyline} ${plot.right},${plot.bottom}`;
+  const area = `${points[0].x.toFixed(1)},${plot.bottom} ${polyline} ${points.at(-1).x.toFixed(1)},${plot.bottom}`;
   const last = points.at(-1);
   const ticks = [upper, Math.round((upper + lower) / 2), lower];
   return `<figure class="sparkline" data-chart aria-label="${escapeHtml(label)}">

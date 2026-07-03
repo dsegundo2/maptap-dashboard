@@ -120,4 +120,17 @@ describe('monthlyLeaderboard', () => {
     expect(result.players[0].summary).toMatchObject({ average: 900, best: 900, lowest: 900, gamesPlayed: 1, daysMissed: 1 });
     expect(scoreForDate(result.players[0], '2026-07-01')).toBeNull();
   });
+
+  it('divides 30-day and monthly averages only by days actually played', () => {
+    const history = [
+      { date: '2026-06-03', score: 0 },
+      { date: '2026-06-10', score: 800 },
+      { date: '2026-06-20', score: 0 },
+      { date: '2026-07-02', score: 900 }
+    ];
+    const dashboard = enrichDashboard({ date: '2026-07-02', players: [{ id: 'a', displayName: 'A', history }] }, 30);
+    expect(dashboard.players[0].summary).toMatchObject({ average: 850, gamesPlayed: 2, daysMissed: 28 });
+    expect(monthlyLeaderboard({ date: '2026-07-02', players: [{ id: 'a', displayName: 'A', history }] }).players[0])
+      .toMatchObject({ average: 900, gamesPlayed: 1 });
+  });
 });

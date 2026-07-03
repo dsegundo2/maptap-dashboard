@@ -21,4 +21,16 @@ describe('sparkline', () => {
   it('keeps the empty state until two scores are available', () => {
     expect(sparkline(history.slice(0, 1))).toContain('Play two days to unlock a trend.');
   });
+
+  it('connects across missed and zero-score days without plotting phantom dots', () => {
+    const chart = sparkline([
+      { date: '2026-06-28', score: 840 },
+      { date: '2026-06-29', score: 0 },
+      { date: '2026-06-30', score: 880 }
+    ], { endDate: '2026-06-30' });
+
+    expect(chart.match(/data-chart-point/g)).toHaveLength(2);
+    expect(chart).not.toContain('data-date="2026-06-29"');
+    expect(chart).toContain('<polyline points=');
+  });
 });
