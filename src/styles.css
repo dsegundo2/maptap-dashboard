@@ -73,9 +73,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .date-toolbar button:disabled { color: #aeb4ad; cursor: default; }
 .date-toolbar .date-picker-trigger { display: flex; justify-content: center; gap: 7px; font-size: 12px; font-weight: 800; }
 .date-toolbar .today-shortcut { min-width: 48px; padding-inline: 8px; background: var(--surface); border: 1px solid #d5ddd1; font-size: 11px; font-weight: 850; }
-.leader-labels, .leader-row { display: grid; grid-template-columns: 30px minmax(76px, 1fr) 44px 58px 56px; align-items: center; gap: 4px; }
+.leader-labels, .leader-row { display: grid; grid-template-columns: 30px minmax(76px, 1fr) 52px 68px; align-items: center; gap: 4px; }
 .leader-labels { padding: 0 8px 7px; color: #79817b; font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
-.leader-labels span:nth-child(3), .leader-labels span:nth-child(4), .leader-labels span:nth-child(5) { text-align: right; }
+.leader-labels span:nth-child(3), .leader-labels span:nth-child(4) { text-align: right; }
 .leader-row { width: 100%; min-height: 52px; padding: 6px 8px; background: transparent; border: 0; border-top: 1px solid #e3e2d9; cursor: pointer; text-align: left; }
 .leader-row:hover { background: #f4f5ec; }
 .rank { display: grid; place-items: center; width: 25px; height: 25px; color: #53605a; border-radius: 50%; font-weight: 800; font-size: 13px; }
@@ -83,8 +83,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .leader-name { overflow: hidden; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .leader-score, .leader-percentile { text-align: right; font-variant-numeric: tabular-nums; }
 .leader-percentile { color: #2d6947; font-size: 12px; }
-.played-state { justify-self: end; padding: 5px 7px; color: #5a625d; background: #efeee9; border-radius: 999px; font-size: 10px; white-space: nowrap; }
-.played-state.is-played { color: #234e32; background: #e2eedb; }
 .list-note { display: flex; align-items: center; gap: 7px; margin: 12px 8px 0; color: var(--ink-soft); font-size: 11px; }
 .status-dot { width: 8px; height: 8px; background: var(--moss); border-radius: 50%; }
 .location-trail { margin-top: 24px; padding: 20px; overflow: hidden; color: white; background: linear-gradient(135deg, #0c422e, #082f22); border: 1px solid rgba(255,255,255,.14); border-radius: var(--radius); box-shadow: 0 16px 36px rgba(8,47,34,.16); }
@@ -158,7 +156,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .calendar-grid > span, .calendar-grid button { aspect-ratio: 1; }.calendar-grid button { display: grid; place-items: center; min-width: 0; color: var(--ink); background: #f3f3ec; border: 1px solid transparent; border-radius: 10px; font-size: 12px; font-weight: 750; cursor: pointer; }.calendar-grid button:hover { background: var(--sage); }.calendar-grid button[aria-pressed="true"] { color: white; background: var(--forest); box-shadow: 0 5px 14px rgba(13,66,46,.2); }
 
 @media (min-width: 620px) {
-  .app-shell { padding-inline: 28px; }.winner-hero { margin-inline: 0; border-radius: 24px 24px 0 0; }.winner-panel { left: 24px; right: 24px; }.leaderboard { padding-inline: 22px; }.leader-labels, .leader-row { grid-template-columns: 42px minmax(100px, 1fr) 72px 75px 82px; }.leaderboard + .summary-section { margin-inline: 6px; }
+  .app-shell { padding-inline: 28px; }.winner-hero { margin-inline: 0; border-radius: 24px 24px 0 0; }.winner-panel { left: 24px; right: 24px; }.leaderboard { padding-inline: 22px; }.leader-labels, .leader-row { grid-template-columns: 42px minmax(100px, 1fr) 72px 82px; }.leaderboard + .summary-section { margin-inline: 6px; }
 }
 @media (max-width: 420px) { .brand-mark { width: 44px; height: 44px; flex-basis: 44px; }.brand strong { font-size: 18px; }.refresh-button { padding-inline: 9px; }.summary-heading { align-items: stretch; flex-direction: column; } }
 @media (max-width: 560px) { .location-trail { padding: 18px; }.location-trail-layout { grid-template-columns: 1fr; gap: 12px; }.location-map { max-width: 360px; margin-inline: auto; }.location-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; }.location-list li:nth-child(4) { border-bottom: 0; }.location-list li:last-child { grid-column: 1 / -1; }.location-list strong { font-size: 11px; } }

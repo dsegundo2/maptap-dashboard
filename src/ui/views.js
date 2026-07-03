@@ -21,7 +21,6 @@ function playerRow(player, index) {
     <span class="leader-name">${escapeHtml(player.displayName)}</span>
     <strong class="leader-score">${formatScore(player.score)}</strong>
     <span class="leader-percentile">${standing}</span>
-    <span class="played-state ${player.playedToday ? 'is-played' : ''}">${player.playedToday ? 'Played' : 'Not yet'}</span>
   </button>`;
 }
 
@@ -120,7 +119,7 @@ export function todayView(data, options = {}) {
         <button type="button" data-action="next-day" aria-label="Next day" ${data.date >= maximumDate ? 'disabled' : ''}>${icon('chevron', 18)}</button>
         <button class="today-shortcut" type="button" data-action="jump-today" aria-label="Jump to today" ${isToday ? 'disabled' : ''}>Today</button>
       </div>
-      <div class="leader-labels" aria-hidden="true"><span>Rank</span><span>Player</span><span>Score</span><span>Percentile</span><span>Status</span></div>
+      <div class="leader-labels" aria-hidden="true"><span>Rank</span><span>Player</span><span>Score</span><span>Percentile</span></div>
       <div class="leader-list">${data.players.map(playerRow).join('')}</div>
       <p class="list-note"><span class="status-dot"></span>${data.players.length - notPlayed} played ${isToday ? 'today' : 'on this day'} <span>·</span> ${notPlayed} ${isToday ? 'still exploring' : 'did not play'}</p>
     </section>

@@ -4,7 +4,8 @@ import { broadcastCardSvg, leadersForDate, previewDates } from '../scripts/og-ca
 const players = [
   { displayName: 'Karen', score: 880, playedToday: true, history: [{ date: '2026-07-01', score: 810 }] },
   { displayName: 'Kirthi', score: 862, playedToday: true, history: [{ date: '2026-07-01', score: 850 }] },
-  { displayName: 'Diego Dad', score: 857, playedToday: true, history: [{ date: '2026-07-01', score: 820 }] }
+  { displayName: 'Diego Dad', score: 857, playedToday: true, history: [{ date: '2026-07-01', score: 820 }] },
+  { displayName: 'Natalia', playedToday: false, history: [] }
 ];
 const locations = [
   { name: 'Newark, New Jersey', lat: 40.743, lng: -74.1724 },
@@ -19,6 +20,7 @@ describe('Open Graph broadcast card', () => {
     expect(svg).toContain('Karen leads');
     expect(svg).toContain('POINTS TODAY');
     expect(svg).toContain('DAILY TOP THREE');
+    expect(svg).toContain('1 still exploring');
     expect(svg).not.toContain('HB GROUP');
     expect(svg).not.toContain('>K<');
     expect(svg).not.toContain('>DD<');
@@ -40,6 +42,7 @@ describe('Open Graph broadcast card', () => {
     expect(svg).toContain('WHERE THE TRAIL WENT');
     expect(svg).toContain('Tokyo');
     expect(svg).toContain('scale(1.25)');
+    expect(svg).not.toContain('still exploring');
   });
 
   it('has a deliberate empty-day treatment', () => {

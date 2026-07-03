@@ -29,7 +29,7 @@ function brandAndBackground(leftWidth) {
   return `<defs><linearGradient id="forest" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b5037"/><stop offset="1" stop-color="#062d20"/></linearGradient></defs><rect width="1200" height="630" fill="#f4f0e5"/><rect width="${leftWidth}" height="630" fill="url(#forest)"/><path d="M0 505 110 395 195 465 300 350 ${leftWidth} 445V630H0Z" fill="#376a4c"/><path d="M0 560 95 480 185 535 300 450 ${leftWidth} 525V630H0Z" fill="#194832"/><g transform="translate(64 70)"><circle r="23" fill="#e8eedf"/><path d="M-16 11-3-10 6 2 13-7 20 11Z" fill="#164b35"/></g><text x="104" y="63" fill="#fff" font-family="Arial,sans-serif" font-size="25" font-weight="800">MapTap</text>`;
 }
 
-function scoreboardCard({ date, today, leaders }) {
+function scoreboardCard({ date, today, leaders, exploring = 0 }) {
   const winner = leaders[0];
   const isPast = date < today;
   const rowMarkup = leaders.map((player, index) => {
@@ -44,7 +44,8 @@ function scoreboardCard({ date, today, leaders }) {
   const score = winner ? winner.score.toLocaleString() : '—';
   const scoreLabel = winner ? (isPast ? 'WINNING SCORE' : 'POINTS TODAY') : 'NO SCORES YET';
   const heading = isPast ? 'FINAL TOP THREE' : 'DAILY TOP THREE';
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">${brandAndBackground(455)}<text x="72" y="162" fill="#bfd0c3" font-family="Arial,sans-serif" font-size="16" font-weight="800" letter-spacing="2">${escape(displayDate(date).toUpperCase())}</text><text x="72" y="228" fill="#fff" font-family="Georgia,serif" font-size="${headlineSize}" font-weight="700">${headline}</text><text x="72" y="365" fill="#f4c14a" font-family="Arial,sans-serif" font-size="83" font-weight="900">${score}</text><text x="76" y="397" fill="#bed0c3" font-family="Arial,sans-serif" font-size="18">${scoreLabel}</text><text x="515" y="86" fill="#17392b" font-family="Arial,sans-serif" font-size="16" font-weight="800" letter-spacing="2">${heading}</text>${leaders.length ? rowMarkup : emptyMarkup}<text x="1130" y="574" text-anchor="end" fill="#75857c" font-family="Arial,sans-serif" font-size="16">Open the dashboard for all players →</text></svg>`;
+  const exploringMarkup = !isPast && exploring > 0 ? `<g transform="translate(72 420)"><rect width="190" height="34" rx="17" fill="#fff" opacity=".12"/><circle cx="18" cy="17" r="5" fill="#f4c14a"/><text x="32" y="22" fill="#e5eee7" font-family="Arial,sans-serif" font-size="14" font-weight="700">${exploring} still exploring</text></g>` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">${brandAndBackground(455)}<text x="72" y="162" fill="#bfd0c3" font-family="Arial,sans-serif" font-size="16" font-weight="800" letter-spacing="2">${escape(displayDate(date).toUpperCase())}</text><text x="72" y="228" fill="#fff" font-family="Georgia,serif" font-size="${headlineSize}" font-weight="700">${headline}</text><text x="72" y="365" fill="#f4c14a" font-family="Arial,sans-serif" font-size="83" font-weight="900">${score}</text><text x="76" y="397" fill="#bed0c3" font-family="Arial,sans-serif" font-size="18">${scoreLabel}</text>${exploringMarkup}<text x="515" y="86" fill="#17392b" font-family="Arial,sans-serif" font-size="16" font-weight="800" letter-spacing="2">${heading}</text>${leaders.length ? rowMarkup : emptyMarkup}<text x="1130" y="574" text-anchor="end" fill="#75857c" font-family="Arial,sans-serif" font-size="16">Open the dashboard for all players →</text></svg>`;
 }
 
 function pastMapCard({ date, leaders, locations }) {
@@ -64,5 +65,6 @@ export function broadcastCardSvg({ date, today, players, locations = [] }) {
   const leaders = leadersForDate(players, date, today);
   // Location rounds are deliberately impossible on today's card, even if data is passed accidentally.
   if (date < today && locations.length) return pastMapCard({ date, leaders, locations });
-  return scoreboardCard({ date, today, leaders });
+  const exploring = date === today ? players.filter((player) => !player.playedToday).length : 0;
+  return scoreboardCard({ date, today, leaders, exploring });
 }

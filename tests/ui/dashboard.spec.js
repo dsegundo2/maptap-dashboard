@@ -98,10 +98,9 @@ test('navigates previous and next leaderboard days', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Where the trail went' })).toBeVisible();
   await expect(page.locator('.location-list li')).toHaveCount(5);
   await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText(shortDate(previousDate));
-  for (const player of playerRegistry) {
-    const row = page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true });
-    await expect(row).toContainText(Number.isFinite(scoreOn(player, previousDate)) ? 'Played' : 'Not yet');
-  }
+  await expect(page.locator('.leader-labels')).not.toContainText('Status');
+  await expect(page.locator('.leader-list')).not.toContainText('Played');
+  await expect(page.locator('.leader-list')).not.toContainText('Not yet');
   await expect(page.getByRole('button', { name: 'Jump to today' })).toBeEnabled();
   await page.getByRole('button', { name: 'Jump to today' }).click();
   await expect(page.getByRole('heading', { name: 'Today’s leaderboard' })).toBeVisible();
@@ -121,7 +120,7 @@ test('calendar selects the rolling lower bound with one completed score', async 
   await expect(page.getByRole('heading', { name: leader.displayName, exact: true })).toBeVisible();
   for (const player of playerRegistry) {
     const score = scoreOn(player, minimumDate);
-    await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toContainText(Number.isFinite(score) ? score.toLocaleString() : 'Not yet');
+    await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toContainText(Number.isFinite(score) ? score.toLocaleString() : '—');
   }
   await expect(page.getByRole('button', { name: 'Previous day' })).toBeDisabled();
 });
@@ -142,7 +141,8 @@ test('renders a clear empty state when no one has a score', async ({ page }) => 
   await page.goto('/?date=2026-06-01');
   await expect(page.getByRole('heading', { name: 'No scores yet' })).toBeVisible();
   await expect(page.getByText('No one in the group played.')).toBeVisible();
-  await expect(page.locator('.leader-row .played-state')).toHaveText(playerRegistry.map(() => 'Not yet'));
+  await expect(page.locator('.leader-row .leader-score')).toHaveText(playerRegistry.map(() => '—'));
+  await expect(page.locator('.list-note')).toContainText(`${playerRegistry.length} did not play`);
 });
 
 test('keeps all nine players directly visible without pagination', async ({ page }) => {
