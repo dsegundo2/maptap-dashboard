@@ -4,6 +4,7 @@ import sharp from 'sharp';
 import { broadcastCardSvg, previewDates } from './og-card.mjs';
 
 const data = JSON.parse(await readFile(new URL('../public/data/scores.json', import.meta.url), 'utf8'));
+const locationArchive = JSON.parse(await readFile(new URL('../public/data/locations.json', import.meta.url), 'utf8'));
 const assetRoot = new URL('../public/assets/', import.meta.url);
 await mkdir(assetRoot, { recursive: true });
 
@@ -14,7 +15,8 @@ for (const [groupId, group] of Object.entries(data.groups || {})) {
   const directory = new URL(`og/${groupId}/`, assetRoot);
   await mkdir(directory, { recursive: true });
   for (const date of dates) {
-    const svg = broadcastCardSvg({ date, today: data.date, players: group.players });
+    const locations = locationArchive.dates?.[date]?.locations || [];
+    const svg = broadcastCardSvg({ date, today: data.date, players: group.players, locations });
     await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(fileURLToPath(new URL(`${date}.png`, directory)));
   }
 }
