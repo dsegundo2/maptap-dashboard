@@ -12,12 +12,13 @@ export function dateKey(date = new Date(), timezone = 'America/Chicago') {
 }
 
 export function scoreForDate(player, date) {
-  return player.history?.find((game) => game.date === date)?.score ?? null;
+  const score = player.history?.find((game) => game.date === date)?.score;
+  return Number.isFinite(score) && score > 0 ? score : null;
 }
 
 function monthStats(player, month, throughDate) {
   const scores = (player.history || [])
-    .filter((game) => game.date.startsWith(month) && game.date <= throughDate && Number.isFinite(game.score))
+    .filter((game) => game.date.startsWith(month) && game.date <= throughDate && Number.isFinite(game.score) && game.score > 0)
     .map((game) => ({ date: game.date, score: game.score }));
   return {
     scores,
@@ -27,9 +28,16 @@ function monthStats(player, month, throughDate) {
 }
 
 function rankMonthly(entries) {
-  return entries.toSorted((a, b) => b.wins - a.wins
+  const sorted = entries.toSorted((a, b) => b.wins - a.wins
     || (Number.isFinite(b.average) ? b.average : -1) - (Number.isFinite(a.average) ? a.average : -1)
     || a.displayName.localeCompare(b.displayName));
+  let rank = 0;
+  let previousWins;
+  return sorted.map((player) => {
+    if (player.wins !== previousWins) rank += 1;
+    previousWins = player.wins;
+    return { ...player, rank };
+  });
 }
 
 function monthlyEntries(data, month, throughDate) {
@@ -55,12 +63,12 @@ export function monthlyLeaderboard(data, throughDate = data.date) {
   const previousDate = addDays(throughDate, -1);
   const current = monthlyEntries(data, month, throughDate);
   const previous = previousDate.startsWith(month) ? monthlyEntries(data, month, previousDate) : [];
-  const previousRanks = new Map(previous.map((player, index) => [player.id, index + 1]));
+  const previousRanks = new Map(previous.map((player) => [player.id, player.rank]));
   return {
     month,
     label: new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(`${throughDate}T12:00:00Z`)),
-    players: current.map((player, index) => {
-      const rank = index + 1;
+    players: current.map((player) => {
+      const rank = player.rank;
       const previousRank = previousRanks.get(player.id);
       return { ...player, rank, average: Number.isFinite(player.average) ? Math.round(player.average) : null, movement: previousRank ? previousRank - rank : 0 };
     })
@@ -90,7 +98,7 @@ export function dashboardForDate(data, date, standings = {}) {
     return {
       ...player,
       score,
-      playedToday: Number.isFinite(score),
+      playedToday: Number.isFinite(score) && score > 0,
       globalRank: standing.rank,
       globalPercentile: standing.percentile
     };
@@ -100,7 +108,7 @@ export function dashboardForDate(data, date, standings = {}) {
 }
 
 export function globalStanding(score, leaderboard = {}) {
-  if (!Number.isFinite(score)) return { rank: null, percentile: null };
+  if (!Number.isFinite(score) || score <= 0) return { rank: null, percentile: null };
   const buckets = leaderboard.allScoreBuckets || {};
   const sampleTotal = Object.values(buckets).reduce((sum, count) => sum + Number(count), 0);
   const globalTotal = Number(leaderboard.totalPlayers) || sampleTotal;
@@ -123,7 +131,7 @@ export function globalStanding(score, leaderboard = {}) {
 
 export function standingsCoverPlayers(standings, players = []) {
   return players
-    .filter((player) => Number.isFinite(player.score))
+    .filter((player) => Number.isFinite(player.score) && player.score > 0)
     .every((player) => standings && Object.hasOwn(standings, player.id));
 }
 
@@ -142,7 +150,7 @@ export function enrichDashboard(data, days = 30) {
   for (const date of dates) {
     const scores = data.players
       .map((player) => ({ id: player.id, score: scoreForDate(player, date) }))
-      .filter((entry) => Number.isFinite(entry.score));
+      .filter((entry) => Number.isFinite(entry.score) && entry.score > 0);
     if (!scores.length) continue;
     const top = Math.max(...scores.map((entry) => entry.score));
     for (const entry of scores) if (entry.score === top) wins.get(entry.id)?.push(date);
@@ -150,7 +158,7 @@ export function enrichDashboard(data, days = 30) {
 
   const players = data.players.map((player) => {
     const recent = (player.history || []).filter((game) => dates.includes(game.date));
-    const scores = recent.map((game) => game.score).filter(Number.isFinite);
+    const scores = recent.map((game) => game.score).filter((score) => Number.isFinite(score) && score > 0);
     const winDates = new Set(wins.get(player.id));
     let longestWinStreak = 0;
     let running = 0;
@@ -182,6 +190,6 @@ export function enrichDashboard(data, days = 30) {
 export function compactHistory(gameHistory = {}) {
   return Object.entries(gameHistory)
     .map(([date, game]) => ({ date, score: Number(game?.finalScore ?? game?.totalScore) }))
-    .filter((game) => /^\d{4}-\d{2}-\d{2}$/.test(game.date) && Number.isFinite(game.score))
+    .filter((game) => /^\d{4}-\d{2}-\d{2}$/.test(game.date) && Number.isFinite(game.score) && game.score > 0)
     .sort((a, b) => a.date.localeCompare(b.date));
 }

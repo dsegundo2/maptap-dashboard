@@ -14,7 +14,7 @@ function chartBounds(scores) {
 }
 
 export function sparkline(history = [], { width = 320, height = 112, label = 'Score history' } = {}) {
-  const values = history.slice(-30).filter((game) => Number.isFinite(game.score));
+  const values = history.slice(-30).filter((game) => Number.isFinite(game.score) && game.score > 0);
   if (values.length < 2) return '<div class="chart-empty">Play two days to unlock a trend.</div>';
   const { lower, upper } = chartBounds(values.map((game) => game.score));
   const plot = { left: 37, right: width - 8, top: 8, bottom: height - 10 };

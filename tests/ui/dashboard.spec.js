@@ -180,20 +180,26 @@ test('monthly leaderboard handles movement without placeholder slots', async ({ 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
   await expect(page.getByLabel('Moved up 1 place')).toBeVisible();
-  await expect(page.getByLabel('Moved down 1 place')).toBeVisible();
+  await expect(page.getByLabel('Moved down 1 place')).toHaveCount(0);
+  await expect(page.locator('.monthly-rank-row.rank-1')).toHaveCount(2);
+  await expect(page.locator('.monthly-rank-row.rank-1 .rank.gold')).toHaveCount(2);
   await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
   await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(0);
-  await expect(page.locator('.monthly-rank-row.rank-3')).toContainText('0 games · — avg');
+  await expect(page.locator('.monthly-rank-row[data-player="empty"]')).toContainText('0 games · — avg');
 });
 
 test('June leaderboard shows every ranked player and highlights only the top three', async ({ page }) => {
+  const winnerOrder = [0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4];
   const players = Array.from({ length: 6 }, (_, index) => ({
     id: `june-${index + 1}`,
     maptapUsername: `June${index + 1}`,
     displayName: `June Player ${index + 1}`,
     score: 900 - index * 10,
     playedToday: true,
-    history: [{ date: '2026-06-30', score: 900 - index * 10 }]
+    history: winnerOrder.map((winner, dayIndex) => ({
+      date: `2026-06-${String(16 + dayIndex).padStart(2, '0')}`,
+      score: winner === index ? 900 : 100 + index
+    }))
   }));
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2026-06-30', globalPlayers: 1000, players } }));
   await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
@@ -231,4 +237,25 @@ test('shares the selected day as a group-specific website link', async ({ page }
   expect(payload.url).toBe(`http://127.0.0.1:4179${routeBase}/SB/${scoreSnapshot.date}/`);
   expect(payload.title).toContain('SB MapTap leaderboard');
   expect(payload).not.toHaveProperty('files');
+});
+
+test('past-day sharing falls back to copying without losing the selected date', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.copiedShareUrl = null;
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async () => { throw Object.assign(new Error('Native share unavailable'), { name: 'NotAllowedError' }); }
+    });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: async (value) => { window.copiedShareUrl = value; } }
+    });
+  });
+  await page.goto(`${routeBase}/HB`);
+  await page.getByRole('button', { name: 'Previous day' }).click();
+  const previousDate = addDays(scoreSnapshot.date, -1);
+  await expect(page.getByRole('button', { name: 'Choose leaderboard date' })).toContainText(shortDate(previousDate));
+  await page.getByRole('button', { name: 'Share' }).click();
+  await expect.poll(() => page.evaluate(() => window.copiedShareUrl)).toBe(`http://127.0.0.1:4179${routeBase}/HB/${previousDate}/`);
+  await expect(page.getByRole('status')).toContainText('Leaderboard link copied.');
 });

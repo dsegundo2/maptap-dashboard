@@ -4,7 +4,7 @@ import { addDays, dashboardForDate, leaderboardDateRange, standingsCoverPlayers 
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
 import { playersView, todayView } from './ui/views.js';
-import { shareUrlForDate } from './ui/share-card.js';
+import { shareUrlForDate, shareWebsite } from './ui/share-card.js';
 
 const app = document.querySelector('#app');
 const basePath = import.meta.env.BASE_URL.replace(/^\/|\/$/g, '');
@@ -101,21 +101,17 @@ async function refresh({ quiet = false } = {}) {
 }
 
 async function shareSelectedDate() {
-  setMessage('Refreshing before sharing…');
-  const data = await refresh({ quiet: true });
-  const selectedData = dashboardForDate(data, state.selectedDate, state.standingsByDate[state.selectedDate]);
+  if (!state.data || !state.selectedDate) return;
+  const selectedData = dashboardForDate(state.data, state.selectedDate, state.standingsByDate[state.selectedDate]);
   try {
     const url = shareUrlForDate(window.location, basePath, selectedData.groupId, selectedData.date);
     const title = `${selectedData.groupName} MapTap leaderboard — ${formatDate(selectedData.date, { month: 'long' })}`;
-    if (navigator.share) {
-      await navigator.share({ title, url });
-      setMessage('Shared with fresh scores.');
-    } else {
-      await navigator.clipboard.writeText(url);
-      setMessage('Leaderboard link copied.');
-    }
+    const result = await shareWebsite({ navigatorApi: navigator, documentApi: document, title, url });
+    if (result === 'shared') setMessage('Leaderboard shared.');
+    if (result === 'copied') setMessage('Leaderboard link copied.');
   } catch (error) {
-    if (error.name !== 'AbortError') setMessage('Sharing was unavailable. Try again.');
+    console.warn('Share and copy were unavailable.', error);
+    setMessage('Couldn’t share automatically. Copy the page address instead.');
   }
 }
 

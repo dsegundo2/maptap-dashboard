@@ -62,7 +62,7 @@ const groupData = Object.fromEntries(groups.map((group) => {
       maptapUsername: user.maptapUsername,
       displayName: user.displayName || profile.nickname,
       score,
-      playedToday: Number.isFinite(score),
+      playedToday: Number.isFinite(score) && score > 0,
       globalRank: standing.rank,
       globalPercentile: standing.percentile,
       displayOrder: index,

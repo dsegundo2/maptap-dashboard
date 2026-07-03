@@ -12,7 +12,7 @@ export function leadersForDate(players, date, today) {
     const score = date === today && player.playedToday
       ? player.score
       : player.history?.find((entry) => entry.date === date)?.score;
-    return Number.isFinite(score) ? [{ displayName: player.displayName, score }] : [];
+    return Number.isFinite(score) && score > 0 ? [{ displayName: player.displayName, score }] : [];
   }).sort((a, b) => b.score - a.score || a.displayName.localeCompare(b.displayName)).slice(0, 3);
 }
 

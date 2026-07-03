@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compactHistory, dashboardForDate, dateKey, enrichDashboard, globalStanding, leaderboardDateRange, monthlyLeaderboard, standingsCoverPlayers } from '../src/lib/stats.js';
+import { compactHistory, dashboardForDate, dateKey, enrichDashboard, globalStanding, leaderboardDateRange, monthlyLeaderboard, scoreForDate, standingsCoverPlayers } from '../src/lib/stats.js';
 
 describe('dateKey', () => {
   it('always returns an ISO date in the configured timezone', () => {
@@ -77,10 +77,10 @@ describe('monthlyLeaderboard', () => {
     const result = monthlyLeaderboard(data);
 
     expect(result.label).toBe('July');
-    expect(result.players.map((player) => [player.id, player.wins, player.average, player.movement])).toEqual([
-      ['bob', 1, 875, 1],
-      ['amy', 1, 800, -1],
-      ['zoe', 0, 800, 0]
+    expect(result.players.map((player) => [player.id, player.wins, player.rank, player.average, player.movement])).toEqual([
+      ['bob', 1, 1, 875, 1],
+      ['amy', 1, 1, 800, 0],
+      ['zoe', 0, 2, 800, 0]
     ]);
   });
 
@@ -97,5 +97,27 @@ describe('monthlyLeaderboard', () => {
     }));
     expect(monthlyLeaderboard({ date: '2026-06-30', players }).players.map((player) => player.id))
       .toEqual(['p1', 'p2', 'p3', 'p4', 'p5', 'p6']);
+  });
+
+  it('uses dense win ranks so alphabetical tie order cannot inflate movement', () => {
+    const players = Array.from({ length: 6 }, (_, index) => ({
+      id: `p${index + 1}`,
+      displayName: `Player ${index + 1}`,
+      history: index === 5 ? [{ date: '2026-07-02', score: 900 }] : []
+    }));
+    const result = monthlyLeaderboard({ date: '2026-07-02', players });
+    expect(result.players[0]).toMatchObject({ id: 'p6', rank: 1, movement: 0 });
+    for (const player of result.players.slice(1)) expect(player).toMatchObject({ rank: 2, movement: -1 });
+  });
+
+  it('treats zero scores as missing in histories and summary averages', () => {
+    const history = compactHistory({
+      '2026-07-01': { finalScore: 0 },
+      '2026-07-02': { finalScore: 900 }
+    });
+    expect(history).toEqual([{ date: '2026-07-02', score: 900 }]);
+    const result = enrichDashboard({ date: '2026-07-02', players: [{ id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 0 }, { date: '2026-07-02', score: 900 }] }] }, 2);
+    expect(result.players[0].summary).toMatchObject({ average: 900, best: 900, lowest: 900, gamesPlayed: 1, daysMissed: 1 });
+    expect(scoreForDate(result.players[0], '2026-07-01')).toBeNull();
   });
 });

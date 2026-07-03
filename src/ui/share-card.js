@@ -5,8 +5,38 @@ export function shareUrlForDate(location, basePath, groupId, date) {
   return new URL(`/${segments.join('/')}/`, location.origin).href;
 }
 
+async function copyShareUrl(navigatorApi, documentApi, url) {
+  if (navigatorApi.clipboard?.writeText) {
+    await navigatorApi.clipboard.writeText(url);
+    return;
+  }
+  const input = documentApi.createElement('textarea');
+  input.value = url;
+  input.setAttribute('readonly', '');
+  input.style.position = 'fixed';
+  input.style.opacity = '0';
+  documentApi.body.append(input);
+  input.select();
+  const copied = documentApi.execCommand?.('copy');
+  input.remove();
+  if (!copied) throw new Error('Could not copy share URL.');
+}
+
+export async function shareWebsite({ navigatorApi, documentApi, title, url }) {
+  if (navigatorApi.share) {
+    try {
+      await navigatorApi.share({ title, url });
+      return 'shared';
+    } catch (error) {
+      if (error?.name === 'AbortError') return 'cancelled';
+    }
+  }
+  await copyShareUrl(navigatorApi, documentApi, url);
+  return 'copied';
+}
+
 export function shareCardSvg(data) {
-  const leaders = data.players.filter((player) => player.playedToday).slice(0, 3);
+  const leaders = data.players.filter((player) => player.playedToday && Number.isFinite(player.score) && player.score > 0).slice(0, 3);
   const date = formatDate(data.date, { month: 'long' });
   const width = 1080;
   const row = (player, index) => {

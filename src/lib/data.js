@@ -72,7 +72,7 @@ export async function fetchLiveDashboard(groupId) {
       maptapUsername: user.maptapUsername,
       displayName: user.displayName || profile.nickname,
       score,
-      playedToday: Number.isFinite(score),
+      playedToday: Number.isFinite(score) && score > 0,
       globalRank: standing.rank,
       globalPercentile: standing.percentile,
       displayOrder: index,
@@ -117,7 +117,7 @@ export async function fetchStandingsForDate(date, players) {
     const payload = await jsonFetch(`${LEADERBOARD_ROOT}daily-${date}.json?alt=media&v=${Date.now()}`);
     const leaderboard = payload.leaderboard;
     return Object.fromEntries(players.map((player) => {
-      if (!Number.isFinite(player.score)) return [player.id, { rank: null, percentile: null }];
+      if (!Number.isFinite(player.score) || player.score <= 0) return [player.id, { rank: null, percentile: null }];
       const exact = leaderboard.players?.find((entry) => entry.odyseedId === player.id);
       const standing = exact
         ? { rank: exact.rank, percentile: ((leaderboard.totalPlayers - exact.rank) / leaderboard.totalPlayers) * 100 }

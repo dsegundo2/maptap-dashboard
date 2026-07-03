@@ -89,8 +89,8 @@ function monthlyBoard(data, className = '') {
   const monthly = monthlyLeaderboard(data);
   return `<section class="monthly-leaderboard ${className}" aria-labelledby="monthly-leaderboard-title">
     <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div><span>Full standings</span></header>
-    <div class="monthly-ranks">${monthly.players.map((entry, index) => `<button class="monthly-rank-row rank-${index + 1}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${index + 1}">
-      ${rankMedal(index)}
+    <div class="monthly-ranks">${monthly.players.map((entry) => `<button class="monthly-rank-row rank-${entry.rank}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${entry.rank}">
+      ${rankMedal(entry.rank - 1)}
       <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
       <span class="monthly-average"><strong>${entry.wins}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
       ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
