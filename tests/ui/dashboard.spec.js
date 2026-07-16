@@ -60,6 +60,7 @@ test('players view shows player summaries instead of the monthly leaderboard', a
   await expect(page.locator('#summary-title')).toContainText('last 30 days');
   await expect(page.getByText('Ranked by total wins')).toHaveCount(0);
   await expect(page.locator('.player-card .mini-win small').first()).toHaveText('30-day avg');
+  await expect(page.getByRole('heading', { name: /by continent/ })).toBeVisible();
   await expect(page.locator('.player-card .avatar').first()).toHaveText('DD');
   await expect(page.getByRole('button', { name: new RegExp(playerRegistry[0].displayName) })).toBeVisible();
   await expect(page.locator('.monthly-rank-row')).toHaveCount(0);
@@ -219,6 +220,38 @@ test('every configured group URL loads its configured roster', async ({ page }) 
       await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toBeVisible();
     }
   }
+});
+
+
+
+test('team tab shows chat group averages, continent splits, locations, and streaks without overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Team', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Team', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Best chat group days' })).toBeVisible();
+  await expect(page.getByText('Monthly group wins')).toHaveCount(0);
+  await expect(page.getByText('Monthly chat wins')).toHaveCount(0);
+  await expect(page.getByText(/Excludes|excluding|chat excludes/i)).toHaveCount(0);
+  await expect(page.getByText('Chat group streak')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Team by continent' })).toBeVisible();
+  await expect(page.getByText('Most accurate locations')).toBeVisible();
+  await expect(page.getByText('Toughest locations')).toBeVisible();
+  const tableRowCount = await page.locator('.team-table [role="row"]').count();
+  expect(tableRowCount).toBeGreaterThan(1);
+  expect(tableRowCount).toBeLessThanOrEqual(30);
+  await expect(page.getByText('What else we could track')).toHaveCount(0);
+  await expect(page.locator('.team-table-locations')).not.toHaveCount(0);
+  await expect(page.locator('.team-table-locations').getByText('—')).toHaveCount(0);
+  const averages = await page.locator('.team-table [role="row"] strong').allTextContents();
+  const numericAverages = averages.map((value) => Number(value.replace(/,/g, '')));
+  expect(numericAverages).toEqual([...numericAverages].sort((a, b) => b - a));
+  const teamTrail = page.locator('.team-score-trail');
+  const pointCount = await teamTrail.locator('[data-chart-point][data-locations]:not([data-locations=""])').count();
+  expect(pointCount).toBeGreaterThan(0);
+  await teamTrail.locator('[data-chart-point][data-locations]:not([data-locations=""])').first().focus();
+  await expect(teamTrail.locator('[data-tooltip-locations]')).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  expect(overflow).toBe(false);
 });
 
 test('shares the selected day as a group-specific website link', async ({ page }) => {

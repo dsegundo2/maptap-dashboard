@@ -1,7 +1,7 @@
 import { icon } from './icons.js';
 import { escapeHtml, formatDate, formatScore } from './format.js';
 import { sparkline } from './charts.js';
-import { monthlyLeaderboard } from '../lib/stats.js';
+import { monthlyLeaderboard, playerContinentStats, teamStats } from '../lib/stats.js';
 import { projectLocation, WORLD_LAND_PATH } from './world-map.js';
 
 function rankMedal(index) {
@@ -66,6 +66,15 @@ function locationTrail(date, locations = []) {
   </section>`;
 }
 
+
+function continentSplit(title, entries, note = '') {
+  if (!entries?.length) return '';
+  return `<section class="continent-card" aria-labelledby="${escapeHtml(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}">
+    <div class="section-heading"><div><h2 id="${escapeHtml(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}">${escapeHtml(title)}</h2>${note ? `<p>${note}</p>` : ''}</div></div>
+    <div class="continent-list">${entries.map((entry) => `<article><div><strong>${escapeHtml(entry.continent)}</strong><small>${entry.days} ${entry.days === 1 ? 'day' : 'days'} matched</small></div><span>${formatScore(entry.average)}</span><i style="--bar:${Math.max(8, Math.min(100, Math.round((entry.average / 1000) * 100)))}%"></i></article>`).join('')}</div>
+  </section>`;
+}
+
 function playerSummary(data, spotlightId) {
   const leader = data.players.find((player) => player.playedToday);
   const spotlight = data.players.find((player) => player.id === spotlightId) || leader || data.players[0];
@@ -73,13 +82,15 @@ function playerSummary(data, spotlightId) {
   return `<section id="player-insights" class="summary-section player-summary" aria-labelledby="summary-title" aria-live="polite">
     <div class="summary-heading"><div><p>Selected player</p><h2 id="summary-title">${escapeHtml(spotlight.displayName)}’s last 30 days</h2></div></div>
     <div class="summary-grid">
-      <div><span>Daily wins</span><strong>${spotlight?.summary.wins ?? 0}</strong><small>in the group</small></div>
+      <div><span>Daily wins</span><strong>${spotlight?.summary.wins ?? 0}</strong><small>full group</small></div>
+      ${Number.isFinite(spotlight?.summary.chatWins) ? `<div><span>Chat group wins</span><strong>${spotlight.summary.chatWins}</strong><small>subgroup</small></div>` : ''}
       <div><span>Best streak</span><strong>${spotlight?.summary.longestWinStreak ?? 0}</strong><small>days</small></div>
       <div><span>30-day average</span><strong>${formatScore(spotlight?.summary.average)}</strong><small>points</small></div>
       <div><span>Best score</span><strong>${formatScore(spotlight?.summary.best)}</strong><small>points</small></div>
       <div><span>Games</span><strong>${spotlight?.summary.gamesPlayed ?? 0}</strong><small>played</small></div>
       <div><span>Days missed</span><strong>${spotlight?.summary.daysMissed ?? 30}</strong><small>of 30</small></div>
     </div>
+    ${continentSplit(`${spotlight.displayName} by continent`, playerContinentStats(data, spotlight), 'Daily score proxy based on the continents that appeared each day.')}
     <section class="chart-card player-score-trail"><div class="section-heading"><div><h2>${escapeHtml(spotlight.displayName)}’s score trail</h2><p>Last 30 days · hover or focus any played day to see its score</p></div></div>${sparkline(spotlight.history, { label: `${spotlight.displayName} score history`, height: 142, endDate: data.date })}</section>
   </section>`;
 }
@@ -95,6 +106,70 @@ function monthlyBoard(data, className = '') {
       ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
     </button>`).join('')}</div>
   </section>`;
+}
+
+
+function locationsList(title, locations, modifier = '') {
+  if (!locations?.length) return '';
+  return `<section class="location-rank-card ${modifier}"><h3>${title}</h3><div>${locations.map((location, index) => `<article><span>${index + 1}</span><div><strong>${escapeHtml(location.name)}</strong><small>${formatScore(location.average)} avg · ${location.bestAppearance ? formatDate(location.bestAppearance.date, { year: undefined }) : `${location.days} ${location.days === 1 ? 'day' : 'days'}`}</small></div></article>`).join('')}</div></section>`;
+}
+
+function dayLocations(day) {
+  if (!day?.locations?.length) return '<p class="empty-note">No location archive for this day yet.</p>';
+  return `<ol class="team-day-locations">${day.locations.map((location, index) => `<li><span>${index + 1}</span><strong>${escapeHtml(location.name)}</strong></li>`).join('')}</ol>`;
+}
+
+function teamDayCard(title, day, tone) {
+  if (!day) return '';
+  return `<article class="team-extreme-card ${tone}">
+    <p>${title}</p>
+    <h3>${formatScore(day.average)} avg</h3>
+    <span>${formatDate(day.date, { month: 'long' })} · ${day.played} played · ${formatScore(day.high)} high / ${formatScore(day.low)} low</span>
+    ${dayLocations(day)}
+  </article>`;
+}
+
+function teamAverageTable(stats) {
+  const rankedDays = stats.daily
+    .filter((day) => Number.isFinite(day.average) && day.locations?.length)
+    .toSorted((a, b) => b.average - a.average || b.high - a.high || b.date.localeCompare(a.date));
+  return `<section class="team-average-table surface" aria-labelledby="team-average-title">
+    <div class="section-heading"><div><h2 id="team-average-title">Best chat group days</h2><p>Ranked by average score for days with archived locations. Requires at least two scores.</p></div></div>
+    <div class="team-table" role="table" aria-label="Best chat group average scores over the last 30 days">
+      <div role="row" class="team-table-head"><span>Date</span><span>Players</span><span>Average</span><span>High / Low</span><span>Locations</span></div>
+      ${rankedDays.map((day) => {
+        const locations = day.locations?.length ? day.locations.map((location) => location.name).join(' • ') : '—';
+        return `<div role="row"><span>${formatDate(day.date, { year: undefined })}</span><span>${day.played || '—'}</span><strong>${formatScore(day.average)}</strong><span>${Number.isFinite(day.high) ? `${formatScore(day.high)} / ${formatScore(day.low)}` : '—'}</span><span class="team-table-locations">${escapeHtml(locations)}</span></div>`;
+      }).join('')}
+    </div>
+  </section>`;
+}
+
+export function teamView(data) {
+  const stats = teamStats(data);
+  const longest = stats.longestStreakPlayer;
+  return `<div class="view content-view team-view" data-view="team">
+    <header class="players-heading"><div><h1>Team</h1><p>${data.groupName} collective stats · last 30 days</p></div></header>
+    <section class="team-hero surface" aria-labelledby="team-title">
+      <div><p>Chat group average</p><h2 id="team-title">${formatScore(stats.teamAverage)}</h2><span>${stats.gamesPlayed} played scores across ${stats.playedDays} qualifying days</span></div>
+      <div class="team-scope-cards">
+        <article><span>Chat group streak</span><strong>${longest?.summary?.chatLongestWinStreak ?? 0}</strong><small>${longest ? escapeHtml(longest.displayName) : 'No streak yet'}</small></article>
+        <article><span>Best continent</span><strong>${formatScore(stats.continentStats?.[0]?.average)}</strong><small>${escapeHtml(stats.continentStats?.[0]?.continent || 'Not enough data')}</small></article>
+      </div>
+    </section>
+    <section class="team-extremes" aria-label="Team high and low days">
+      ${teamDayCard('Highest team day', stats.highDay, 'high')}
+      ${teamDayCard('Lowest team day', stats.lowDay, 'low')}
+    </section>
+    ${continentSplit('Team by continent', stats.continentStats, 'Daily chat-group average proxy based on the continents that appeared each day.')}
+    <section class="chart-card team-score-trail"><div class="section-heading"><div><h2>Chat group score trail</h2><p>Daily average of subgroup players who played; requires at least two scores.</p></div></div>${sparkline(stats.chartHistory, { label: 'Team average score history', height: 142, endDate: data.date })}</section>
+    <section class="location-insights" aria-label="Location accuracy insights">
+      ${locationsList('Most accurate locations', stats.bestLocations, 'best')}
+      ${locationsList('Toughest locations', stats.toughestLocations, 'tough')}
+      ${stats.bestInternational ? `<section class="international-card"><p>Best international location</p><h3>${escapeHtml(stats.bestInternational.name)}</h3><span>${formatScore(stats.bestInternational.average)} average${stats.bestInternational.bestAppearance ? ` · ${formatDate(stats.bestInternational.bestAppearance.date, { month: 'long' })}${stats.bestInternational.bestAppearance.topPlayer ? ` · ${escapeHtml(stats.bestInternational.bestAppearance.topPlayer.displayName)} led with ${formatScore(stats.bestInternational.bestAppearance.topPlayer.score)}` : ''}` : ''}</span></section>` : ''}
+    </section>
+    ${teamAverageTable(stats)}
+  </div>`;
 }
 
 export function todayView(data, options = {}) {

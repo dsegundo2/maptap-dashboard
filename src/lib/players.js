@@ -2,7 +2,7 @@ export function enabledPlayers(registry) {
   const players = Array.isArray(registry)
     ? registry
     : registry && typeof registry === 'object'
-      ? Object.entries(registry).map(([maptapUsername, displayName]) => ({ maptapUsername, displayName }))
+      ? Object.entries(registry).map(([maptapUsername, value]) => (typeof value === 'string' ? { maptapUsername, displayName: value } : { ...value, maptapUsername, displayName: value?.displayName }))
       : null;
   if (!players) throw new Error('Player registry must be a JSON object or array.');
   if (players.length > 10) throw new Error('Player registry supports a maximum of 10 entries.');

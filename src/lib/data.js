@@ -60,6 +60,7 @@ export async function fetchLiveDashboard(groupId) {
         globalRank: null,
         globalPercentile: null,
         displayOrder: index,
+        excludedFromChatWins: user.excludedFromChatWins === true,
         history: []
       };
     }
@@ -76,6 +77,7 @@ export async function fetchLiveDashboard(groupId) {
       globalRank: standing.rank,
       globalPercentile: standing.percentile,
       displayOrder: index,
+      excludedFromChatWins: user.excludedFromChatWins === true,
       history
     };
   });
@@ -96,7 +98,7 @@ export async function fetchStaticDashboard(groupId) {
   const players = configuredPlayers.map((configuredPlayer, displayOrder) => {
     const player = playersByUsername.get(configuredPlayer.maptapUsername);
     return player
-      ? { ...player, displayName: configuredPlayer.displayName, displayOrder }
+      ? { ...player, displayName: configuredPlayer.displayName, displayOrder, excludedFromChatWins: configuredPlayer.excludedFromChatWins === true }
       : {
           id: `configured:${configuredPlayer.maptapUsername}`,
           maptapUsername: configuredPlayer.maptapUsername,
@@ -106,6 +108,7 @@ export async function fetchStaticDashboard(groupId) {
           globalRank: null,
           globalPercentile: null,
           displayOrder,
+          excludedFromChatWins: configuredPlayer.excludedFromChatWins === true,
           history: []
         };
   });

@@ -3,7 +3,7 @@ import { fetchLiveDashboard, fetchStandingsForDate, fetchStaticDashboard, readCa
 import { addDays, dashboardForDate, leaderboardDateRange, standingsCoverPlayers } from './lib/stats.js';
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
-import { playersView, todayView } from './ui/views.js';
+import { playersView, teamView, todayView } from './ui/views.js';
 import { shareUrlForDate, shareWebsite } from './ui/share-card.js';
 
 const app = document.querySelector('#app');
@@ -27,7 +27,8 @@ const state = {
 function shell(content = '') {
   const navItems = [
     ['today', 'Today', 'home'],
-    ['players', 'Players', 'users']
+    ['players', 'Players', 'users'],
+    ['team', 'Team', 'trend']
   ];
   return `<div class="app-shell">
     <header class="app-header">
@@ -57,7 +58,8 @@ function render() {
       calendarOpen: state.calendarOpen,
       standingsLoading: state.standingsLoading
     }),
-    players: () => playersView(state.data, state.spotlightPlayer)
+    players: () => playersView(state.data, state.spotlightPlayer),
+    team: () => teamView(state.data)
   };
   app.innerHTML = shell(views[state.view]());
 }
@@ -141,6 +143,11 @@ function showChartTooltip(point, event) {
   if (!chart || !tooltip) return;
   tooltip.querySelector('[data-tooltip-date]').textContent = formatDate(point.dataset.date, { month: 'long' });
   tooltip.querySelector('[data-tooltip-score]').textContent = `${Number(point.dataset.score).toLocaleString()} points`;
+  const locations = tooltip.querySelector('[data-tooltip-locations]');
+  if (locations) {
+    locations.textContent = point.dataset.locations || '';
+    locations.hidden = !point.dataset.locations;
+  }
   const chartBox = chart.getBoundingClientRect();
   const pointBox = point.getBoundingClientRect();
   const pointerX = event?.clientX ?? pointBox.left + pointBox.width / 2;
