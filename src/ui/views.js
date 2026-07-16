@@ -90,7 +90,7 @@ function playerSummary(data, spotlightId) {
       <div><span>Games</span><strong>${spotlight?.summary.gamesPlayed ?? 0}</strong><small>played</small></div>
       <div><span>Days missed</span><strong>${spotlight?.summary.daysMissed ?? 30}</strong><small>of 30</small></div>
     </div>
-    ${continentSplit(`${spotlight.displayName} by continent`, playerContinentStats(data, spotlight), 'Average round score by archived location continent.')}
+    ${continentSplit(`${spotlight.displayName} projected by continent`, playerContinentStats(data, spotlight), 'Projected average round score by archived location continent.')}
     <section class="chart-card player-score-trail"><div class="section-heading"><div><h2>${escapeHtml(spotlight.displayName)}’s score trail</h2><p>Last 30 days · hover or focus any played day to see its score</p></div></div>${sparkline(spotlight.history, { label: `${spotlight.displayName} score history`, height: 142, endDate: data.date })}</section>
   </section>`;
 }
@@ -157,19 +157,19 @@ export function teamView(data) {
       <div><p>Chat group average</p><h2 id="team-title">${formatScore(stats.teamAverage)}</h2><span>${stats.gamesPlayed} played scores across ${stats.playedDays} qualifying days</span></div>
       <div class="team-scope-cards">
         <article><span>Chat group streak</span><strong>${longest?.summary?.chatLongestWinStreak ?? 0}</strong><small>${longest ? escapeHtml(longest.displayName) : 'No streak yet'}</small></article>
-        <article><span>Best continent</span><strong>${formatScore(stats.continentStats?.[0]?.average)}/100</strong><small>${escapeHtml(stats.continentStats?.[0]?.continent || 'Not enough data')}</small></article>
+        <article><span>Projected best continent</span><strong>${formatScore(stats.continentStats?.[0]?.average)}/100</strong><small>${escapeHtml(stats.continentStats?.[0]?.continent || 'Not enough data')}</small></article>
       </div>
     </section>
     <section class="team-extremes" aria-label="Team high and low days">
       ${teamDayCard('Highest team day', stats.highDay, 'high')}
       ${teamDayCard('Lowest team day', stats.lowDay, 'low')}
     </section>
-    ${continentSplit('Team by continent', stats.continentStats, 'Average chat-group round score by archived location continent.')}
+    ${continentSplit('Projected team by continent', stats.continentStats, 'Projected average chat-group round score by archived location continent.')}
     <section class="chart-card team-score-trail"><div class="section-heading"><div><h2>Chat group score trail</h2><p>Daily average of subgroup players who played; requires at least two scores.</p></div></div>${sparkline(stats.chartHistory, { label: 'Team average score history', height: 142, endDate: data.date })}</section>
     <section class="location-insights" aria-label="Location accuracy insights">
-      ${locationsList('Most accurate U.S. locations', stats.bestUSLocations, 'best')}
-      ${locationsList('Best international locations', stats.bestInternationalLocations, 'best')}
-      ${locationsList('Toughest locations', stats.toughestLocations, 'tough')}
+      ${locationsList('Projected most accurate U.S. locations', stats.bestUSLocations, 'best')}
+      ${locationsList('Projected best international locations', stats.bestInternationalLocations, 'best')}
+      ${locationsList('Projected toughest locations', stats.toughestLocations, 'tough')}
     </section>
     ${teamAverageTable(stats)}
   </div>`;
