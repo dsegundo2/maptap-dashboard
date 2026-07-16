@@ -60,7 +60,7 @@ test('players view shows player summaries instead of the monthly leaderboard', a
   await expect(page.locator('#summary-title')).toContainText('last 30 days');
   await expect(page.getByText('Ranked by total wins')).toHaveCount(0);
   await expect(page.locator('.player-card .mini-win small').first()).toHaveText('30-day avg');
-  await expect(page.getByRole('heading', { name: /projected by continent/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /by continent/ })).toBeVisible();
   await expect(page.locator('.player-card .avatar').first()).toHaveText('DD');
   await expect(page.getByRole('button', { name: new RegExp(playerRegistry[0].displayName) })).toBeVisible();
   await expect(page.locator('.monthly-rank-row')).toHaveCount(0);
@@ -233,11 +233,10 @@ test('team tab shows chat group averages, continent splits, locations, and strea
   await expect(page.getByText('Monthly chat wins')).toHaveCount(0);
   await expect(page.getByText(/Excludes|excluding|chat excludes/i)).toHaveCount(0);
   await expect(page.getByText('Chat group streak')).toBeVisible();
-  await expect(page.getByText('Projected best continent')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Projected team by continent' })).toBeVisible();
-  await expect(page.getByText('Projected most accurate U.S. locations')).toBeVisible();
-  await expect(page.getByText('Projected best international locations')).toBeVisible();
-  await expect(page.getByText('Projected toughest locations')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Team by continent' })).toBeVisible();
+  await expect(page.getByText('Most accurate U.S. locations')).toBeVisible();
+  await expect(page.getByText('Best international locations')).toBeVisible();
+  await expect(page.getByText('Toughest locations')).toBeVisible();
   const tableRowCount = await page.locator('.team-table [role="row"]').count();
   expect(tableRowCount).toBeGreaterThan(1);
   expect(tableRowCount).toBeLessThanOrEqual(6);
