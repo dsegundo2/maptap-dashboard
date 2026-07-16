@@ -13,6 +13,11 @@ function chartBounds(scores) {
   return { lower, upper };
 }
 
+function pointLocationText(point) {
+  const locations = Array.isArray(point.locations) ? point.locations : [];
+  return locations.map((location, index) => `${index + 1}. ${location?.name || ''}`.trim()).filter(Boolean).join(' • ');
+}
+
 export function sparkline(history = [], { width = 320, height = 112, label = 'Score history', endDate } = {}) {
   const datedHistory = history.filter((game) => /^\d{4}-\d{2}-\d{2}$/.test(game.date));
   const windowEnd = new Date(`${endDate || datedHistory.at(-1)?.date}T12:00:00Z`);
@@ -45,13 +50,14 @@ export function sparkline(history = [], { width = 320, height = 112, label = 'Sc
       <path class="chart-area" d="M${area.replaceAll(' ', ' L')} Z"/>
       <polyline points="${polyline}" fill="none" stroke="#315c42" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       ${points.map((point, index) => {
-        const pointLabel = `${formatDate(point.date, { month: 'long' })}: ${formatScore(point.score)} points`;
+        const locationText = pointLocationText(point);
+        const pointLabel = `${formatDate(point.date, { month: 'long' })}: ${formatScore(point.score)} points${locationText ? `. Locations: ${locationText}` : ''}`;
         const hitLeft = index === 0 ? plot.left : (points[index - 1].x + point.x) / 2;
         const hitRight = index === points.length - 1 ? plot.right : (point.x + points[index + 1].x) / 2;
-        return `<g class="chart-point ${index === points.length - 1 ? 'is-latest' : ''}" data-chart-point data-date="${escapeHtml(point.date)}" data-score="${point.score}" tabindex="0" role="img" aria-label="${escapeHtml(pointLabel)}"><title>${escapeHtml(pointLabel)}</title><rect class="chart-point-hit" x="${hitLeft.toFixed(1)}" y="${plot.top}" width="${(hitRight - hitLeft).toFixed(1)}" height="${plot.bottom - plot.top}"/><circle class="chart-point-dot" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3.5"/></g>`;
+        return `<g class="chart-point ${index === points.length - 1 ? 'is-latest' : ''}" data-chart-point data-date="${escapeHtml(point.date)}" data-score="${point.score}" data-locations="${escapeHtml(locationText)}" tabindex="0" role="img" aria-label="${escapeHtml(pointLabel)}"><title>${escapeHtml(pointLabel)}</title><rect class="chart-point-hit" x="${hitLeft.toFixed(1)}" y="${plot.top}" width="${(hitRight - hitLeft).toFixed(1)}" height="${plot.bottom - plot.top}"/><circle class="chart-point-dot" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3.5"/></g>`;
       }).join('')}
     </svg>
     <figcaption><span>${values[0].date.slice(5).replace('-', '/')}</span><strong>${formatScore(last.score)} latest</strong><span>${last.date.slice(5).replace('-', '/')}</span></figcaption>
-    <div class="chart-tooltip" data-chart-tooltip role="status" hidden><span data-tooltip-date></span><strong data-tooltip-score></strong></div>
+    <div class="chart-tooltip" data-chart-tooltip role="status" hidden><span data-tooltip-date></span><strong data-tooltip-score></strong><small data-tooltip-locations hidden></small></div>
   </figure>`;
 }

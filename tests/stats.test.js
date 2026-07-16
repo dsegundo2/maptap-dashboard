@@ -134,3 +134,58 @@ describe('monthlyLeaderboard', () => {
       .toMatchObject({ average: 900, gamesPlayed: 1 });
   });
 });
+
+describe('teamStats and chat wins', () => {
+  it('averages only played scores and ranks location days', async () => {
+    const { teamStats, chatWinStats, enrichDashboard } = await import('../src/lib/stats.js');
+    const dashboard = enrichDashboard({
+      date: '2026-07-03',
+      players: [
+        { id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 0 }, { date: '2026-07-03', score: 700 }] },
+        { id: 'b', displayName: 'B', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 600 }] },
+        { id: 'c', displayName: 'C', excludedFromChatWins: true, history: [{ date: '2026-07-01', score: 990 }, { date: '2026-07-02', score: 950 }, { date: '2026-07-03', score: 950 }] }
+      ],
+      locationsByDate: {
+        '2026-07-01': { locations: [{ name: 'Paris, France', lat: 48.8, lng: 2.3 }] },
+        '2026-07-02': { locations: [{ name: 'Austin, Texas, USA', lat: 30.2, lng: -97.7 }] },
+        '2026-07-03': { locations: [{ name: 'Tokyo, Japan', lat: 35.6, lng: 139.7 }] }
+      }
+    }, 3);
+    const stats = teamStats(dashboard, 3);
+    expect(stats.daily.map((day) => [day.date, day.average, day.played])).toEqual([
+      ['2026-07-01', 850, 2],
+      ['2026-07-02', null, 1],
+      ['2026-07-03', null, 1]
+    ]);
+    expect(stats.teamAverage).toBe(850);
+    expect(stats.highDay.date).toBe('2026-07-01');
+    expect(stats.lowDay.date).toBe('2026-07-01');
+    expect(stats.bestInternational.name).toBe('Paris, France');
+    expect(stats.bestInternational.bestAppearance.topPlayer).toMatchObject({ displayName: 'A', score: 900 });
+    expect(chatWinStats(dashboard).totalWins).toBe(3);
+  });
+});
+
+it('builds continent splits for team and players from archived locations', async () => {
+  const { enrichDashboard, playerContinentStats, teamStats } = await import('../src/lib/stats.js');
+  const dashboard = enrichDashboard({
+    date: '2026-07-03',
+    players: [
+      { id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 700 }, { date: '2026-07-03', score: 1000 }] },
+      { id: 'b', displayName: 'B', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 600 }, { date: '2026-07-03', score: 1000 }] }
+    ],
+    locationsByDate: {
+      '2026-07-01': { locations: [{ name: 'Bath, England, United Kingdom', lat: 51.38, lng: -2.36 }] },
+      '2026-07-02': { locations: [{ name: 'Sendai, Japan', lat: 38.26, lng: 140.86 }] },
+      '2026-07-03': { locations: [{ name: 'Today Secret, Japan', lat: 38.26, lng: 140.86 }] }
+    }
+  }, 3);
+  expect(teamStats(dashboard, 3).continentStats.map((entry) => [entry.continent, entry.average, entry.days])).toEqual([
+    ['Europe', 850, 1],
+    ['Asia', 650, 1]
+  ]);
+  expect(playerContinentStats(dashboard, dashboard.players.find((player) => player.id === 'a'), 3).map((entry) => [entry.continent, entry.average])).toEqual([
+    ['Europe', 900],
+    ['Asia', 700]
+  ]);
+});

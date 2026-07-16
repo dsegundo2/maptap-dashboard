@@ -10,8 +10,8 @@
         "K T": "Karen",
         "Imahnd": "Imahn",
         "NataliaSegundo": "Natalia",
-        "a_a_r0n": "Aaron",
-        "CaseyLuna": "Casey"
+        "a_a_r0n": { "displayName": "Aaron", "excludedFromChatWins": true },
+        "CaseyLuna": { "displayName": "Casey", "excludedFromChatWins": true }
       }
     },
     "SB": {

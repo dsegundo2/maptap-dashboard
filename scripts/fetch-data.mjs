@@ -49,6 +49,7 @@ const groupData = Object.fromEntries(groups.map((group) => {
       globalRank: null,
       globalPercentile: null,
       displayOrder: index,
+      excludedFromChatWins: user.excludedFromChatWins === true,
       history: []
     };
     const history = compactHistory(profile.gameHistory);
@@ -66,6 +67,7 @@ const groupData = Object.fromEntries(groups.map((group) => {
       globalRank: standing.rank,
       globalPercentile: standing.percentile,
       displayOrder: index,
+      excludedFromChatWins: user.excludedFromChatWins === true,
       history
     };
   }).toSorted((a, b) => (b.score ?? -1) - (a.score ?? -1));
