@@ -158,10 +158,25 @@ function teamPlayers(data) {
   return (data.players || []).filter((player) => player.excludedFromChatWins !== true);
 }
 
-function topScoreForDate(players, date) {
+function roundScoresForDate(players, date, roundIndex) {
   return players
-    .map((player) => ({ player, score: scoreForDate(player, date) }))
-    .filter((entry) => Number.isFinite(entry.score) && entry.score > 0)
+    .map((player) => {
+      const game = player.history?.find((entry) => entry.date === date);
+      const round = game?.rounds?.find((entry) => Number(entry.round) === roundIndex + 1) || game?.rounds?.[roundIndex];
+      return { player, score: Number(round?.score) };
+    })
+    .filter((entry) => Number.isFinite(entry.score) && entry.score >= 0);
+}
+
+function playerRoundScoreForDate(player, date, roundIndex) {
+  const game = player.history?.find((entry) => entry.date === date);
+  const round = game?.rounds?.find((entry) => Number(entry.round) === roundIndex + 1) || game?.rounds?.[roundIndex];
+  const score = Number(round?.score);
+  return Number.isFinite(score) && score >= 0 ? score : null;
+}
+
+function topRoundScoreForDate(players, date, roundIndex) {
+  return roundScoresForDate(players, date, roundIndex)
     .toSorted((a, b) => b.score - a.score || a.player.displayName.localeCompare(b.player.displayName))[0] || null;
 }
 
@@ -203,30 +218,29 @@ function rankContinentStats(entries) {
   return entries
     .map((entry) => ({ ...entry, average: Number.isFinite(entry.average) ? Math.round(entry.average) : null }))
     .filter((entry) => Number.isFinite(entry.average))
-    .toSorted((a, b) => b.average - a.average || b.days - a.days || a.continent.localeCompare(b.continent));
+    .toSorted((a, b) => b.average - a.average || b.samples - a.samples || a.continent.localeCompare(b.continent));
 }
 
-function continentEntriesForDays(data, dates, scoreForDay) {
-  const byContinent = new Map();
-  for (const date of dates) {
-    const score = scoreForDay(date);
-    if (!Number.isFinite(score) || score <= 0) continue;
-    const locations = data.locationsByDate?.[date]?.locations || [];
-    const continents = [...new Set(locations.map(continentForLocation).filter((continent) => continent !== 'Unknown'))];
-    for (const continent of continents) {
-      const entry = byContinent.get(continent) || { continent, total: 0, days: 0 };
-      entry.total += score;
-      entry.days += 1;
-      byContinent.set(continent, entry);
-    }
-  }
-  return rankContinentStats([...byContinent.values()].map((entry) => ({ ...entry, average: entry.total / entry.days })));
+function addContinentSample(map, location, score) {
+  const continent = continentForLocation(location);
+  if (continent === 'Unknown' || !Number.isFinite(score)) return;
+  const entry = map.get(continent) || { continent, total: 0, samples: 0 };
+  entry.total += score;
+  entry.samples += 1;
+  map.set(continent, entry);
 }
 
 export function playerContinentStats(data, player, days = 30) {
-  const dates = rangeDates(data.date, days);
-  const safeData = { ...data, locationsByDate: Object.fromEntries(Object.entries(data.locationsByDate || {}).filter(([date]) => date < data.date)) };
-  return continentEntriesForDays(safeData, dates, (date) => scoreForDate(player, date));
+  const dates = rangeDates(data.date, days).filter((date) => date < data.date);
+  const byContinent = new Map();
+  for (const date of dates) {
+    const locations = data.locationsByDate?.[date]?.locations || [];
+    locations.forEach((location, index) => {
+      const score = playerRoundScoreForDate(player, date, index);
+      if (Number.isFinite(score)) addContinentSample(byContinent, location, score);
+    });
+  }
+  return rankContinentStats([...byContinent.values()].map((entry) => ({ ...entry, average: entry.total / entry.samples, days: entry.samples })));
 }
 
 export function teamStats(data, days = 30) {
@@ -255,19 +269,24 @@ export function teamStats(data, days = 30) {
   const allScores = playedDays.flatMap((day) => day.scores);
   const teamAverage = average(allScores);
   const locationMap = new Map();
+  const continentMap = new Map();
   for (const day of playedDays) {
-    for (const location of day.locations) {
+    day.locations.forEach((location, index) => {
+      const roundScores = roundScoresForDate(players, day.date, index);
+      if (roundScores.length < 2) return;
+      const roundAverage = Math.round(average(roundScores.map((entry) => entry.score)));
       const key = `${location.name}|${location.lat}|${location.lng}`;
-      const top = topScoreForDate(players, day.date);
+      const top = topRoundScoreForDate(players, day.date, index);
       const existing = locationMap.get(key) || { ...location, continent: continentForLocation(location), days: 0, totalAverage: 0, highAverage: null, lowAverage: null, dates: [], appearances: [], international: isLikelyInternational(location) };
       existing.days += 1;
-      existing.totalAverage += day.average;
-      existing.highAverage = Math.max(existing.highAverage ?? day.average, day.average);
-      existing.lowAverage = Math.min(existing.lowAverage ?? day.average, day.average);
+      existing.totalAverage += roundAverage;
+      existing.highAverage = Math.max(existing.highAverage ?? roundAverage, roundAverage);
+      existing.lowAverage = Math.min(existing.lowAverage ?? roundAverage, roundAverage);
       existing.dates.push(day.date);
-      existing.appearances.push({ date: day.date, average: day.average, topPlayer: top ? { id: top.player.id, displayName: top.player.displayName, score: top.score } : null });
+      existing.appearances.push({ date: day.date, average: roundAverage, topPlayer: top ? { id: top.player.id, displayName: top.player.displayName, score: top.score } : null });
       locationMap.set(key, existing);
-    }
+      addContinentSample(continentMap, location, roundAverage);
+    });
   }
   const locations = [...locationMap.values()].map((location) => {
     const averageScore = Math.round(location.totalAverage / location.days);
@@ -278,10 +297,7 @@ export function teamStats(data, days = 30) {
   const toughestLocations = locations.toSorted((a, b) => a.average - b.average || a.name.localeCompare(b.name)).slice(0, 5);
   const bestInternational = locations.filter((location) => location.international).toSorted((a, b) => b.average - a.average || a.name.localeCompare(b.name))[0] || null;
   const longestStreakPlayer = players.toSorted((a, b) => (b.summary?.chatLongestWinStreak ?? 0) - (a.summary?.chatLongestWinStreak ?? 0) || (b.summary?.chatWins ?? 0) - (a.summary?.chatWins ?? 0) || a.displayName.localeCompare(b.displayName))[0] || null;
-  const continentStats = continentEntriesForDays({ ...data, locationsByDate: Object.fromEntries(Object.entries(data.locationsByDate || {}).filter(([date]) => date < data.date)) }, dates, (date) => {
-    const day = daily.find((entry) => entry.date === date);
-    return day?.average;
-  });
+  const continentStats = rankContinentStats([...continentMap.values()].map((entry) => ({ ...entry, average: entry.total / entry.samples, days: entry.samples })));
   return {
     dates,
     daily,
@@ -373,7 +389,17 @@ export function enrichDashboard(data, days = 30) {
 
 export function compactHistory(gameHistory = {}) {
   return Object.entries(gameHistory)
-    .map(([date, game]) => ({ date, score: Number(game?.finalScore ?? game?.totalScore) }))
+    .map(([date, game]) => ({
+      date,
+      score: Number(game?.finalScore ?? game?.totalScore),
+      rounds: Array.isArray(game?.rounds)
+        ? game.rounds.map((round, index) => ({
+            round: Number(round?.round) || index + 1,
+            score: Number(round?.score),
+            distance: Number(round?.distance)
+          })).filter((round) => Number.isFinite(round.score))
+        : []
+    }))
     .filter((game) => /^\d{4}-\d{2}-\d{2}$/.test(game.date) && Number.isFinite(game.score) && game.score > 0)
     .sort((a, b) => a.date.localeCompare(b.date));
 }

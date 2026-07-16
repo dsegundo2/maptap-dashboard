@@ -71,7 +71,7 @@ function continentSplit(title, entries, note = '') {
   if (!entries?.length) return '';
   return `<section class="continent-card" aria-labelledby="${escapeHtml(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}">
     <div class="section-heading"><div><h2 id="${escapeHtml(title.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}">${escapeHtml(title)}</h2>${note ? `<p>${note}</p>` : ''}</div></div>
-    <div class="continent-list">${entries.map((entry) => `<article><div><strong>${escapeHtml(entry.continent)}</strong><small>${entry.days} ${entry.days === 1 ? 'day' : 'days'} matched</small></div><span>${formatScore(entry.average)}</span><i style="--bar:${Math.max(8, Math.min(100, Math.round((entry.average / 1000) * 100)))}%"></i></article>`).join('')}</div>
+    <div class="continent-list">${entries.map((entry) => `<article><div><strong>${escapeHtml(entry.continent)}</strong><small>${entry.days} ${entry.days === 1 ? 'round' : 'rounds'} matched</small></div><span>${formatScore(entry.average)}/100</span><i style="--bar:${Math.max(8, Math.min(100, Math.round((entry.average / 100) * 100)))}%"></i></article>`).join('')}</div>
   </section>`;
 }
 
@@ -90,7 +90,7 @@ function playerSummary(data, spotlightId) {
       <div><span>Games</span><strong>${spotlight?.summary.gamesPlayed ?? 0}</strong><small>played</small></div>
       <div><span>Days missed</span><strong>${spotlight?.summary.daysMissed ?? 30}</strong><small>of 30</small></div>
     </div>
-    ${continentSplit(`${spotlight.displayName} by continent`, playerContinentStats(data, spotlight), 'Daily score proxy based on the continents that appeared each day.')}
+    ${continentSplit(`${spotlight.displayName} by continent`, playerContinentStats(data, spotlight), 'Average round score by archived location continent.')}
     <section class="chart-card player-score-trail"><div class="section-heading"><div><h2>${escapeHtml(spotlight.displayName)}’s score trail</h2><p>Last 30 days · hover or focus any played day to see its score</p></div></div>${sparkline(spotlight.history, { label: `${spotlight.displayName} score history`, height: 142, endDate: data.date })}</section>
   </section>`;
 }
@@ -111,7 +111,7 @@ function monthlyBoard(data, className = '') {
 
 function locationsList(title, locations, modifier = '') {
   if (!locations?.length) return '';
-  return `<section class="location-rank-card ${modifier}"><h3>${title}</h3><div>${locations.map((location, index) => `<article><span>${index + 1}</span><div><strong>${escapeHtml(location.name)}</strong><small>${formatScore(location.average)} avg · ${location.bestAppearance ? formatDate(location.bestAppearance.date, { year: undefined }) : `${location.days} ${location.days === 1 ? 'day' : 'days'}`}</small></div></article>`).join('')}</div></section>`;
+  return `<section class="location-rank-card ${modifier}"><h3>${title}</h3><div>${locations.map((location, index) => `<article><span>${index + 1}</span><div><strong>${escapeHtml(location.name)}</strong><small>${formatScore(location.average)}/100 avg · ${location.bestAppearance ? formatDate(location.bestAppearance.date, { year: undefined }) : `${location.days} ${location.days === 1 ? 'day' : 'days'}`}</small></div></article>`).join('')}</div></section>`;
 }
 
 function dayLocations(day) {
@@ -161,12 +161,12 @@ export function teamView(data) {
       ${teamDayCard('Highest team day', stats.highDay, 'high')}
       ${teamDayCard('Lowest team day', stats.lowDay, 'low')}
     </section>
-    ${continentSplit('Team by continent', stats.continentStats, 'Daily chat-group average proxy based on the continents that appeared each day.')}
+    ${continentSplit('Team by continent', stats.continentStats, 'Average chat-group round score by archived location continent.')}
     <section class="chart-card team-score-trail"><div class="section-heading"><div><h2>Chat group score trail</h2><p>Daily average of subgroup players who played; requires at least two scores.</p></div></div>${sparkline(stats.chartHistory, { label: 'Team average score history', height: 142, endDate: data.date })}</section>
     <section class="location-insights" aria-label="Location accuracy insights">
       ${locationsList('Most accurate locations', stats.bestLocations, 'best')}
       ${locationsList('Toughest locations', stats.toughestLocations, 'tough')}
-      ${stats.bestInternational ? `<section class="international-card"><p>Best international location</p><h3>${escapeHtml(stats.bestInternational.name)}</h3><span>${formatScore(stats.bestInternational.average)} average${stats.bestInternational.bestAppearance ? ` · ${formatDate(stats.bestInternational.bestAppearance.date, { month: 'long' })}${stats.bestInternational.bestAppearance.topPlayer ? ` · ${escapeHtml(stats.bestInternational.bestAppearance.topPlayer.displayName)} led with ${formatScore(stats.bestInternational.bestAppearance.topPlayer.score)}` : ''}` : ''}</span></section>` : ''}
+      ${stats.bestInternational ? `<section class="international-card"><p>Best international location</p><h3>${escapeHtml(stats.bestInternational.name)}</h3><span>${formatScore(stats.bestInternational.average)}/100 average${stats.bestInternational.bestAppearance ? ` · ${formatDate(stats.bestInternational.bestAppearance.date, { month: 'long' })}${stats.bestInternational.bestAppearance.topPlayer ? ` · ${escapeHtml(stats.bestInternational.bestAppearance.topPlayer.displayName)} led with ${formatScore(stats.bestInternational.bestAppearance.topPlayer.score)}/100` : ''}` : ''}</span></section>` : ''}
     </section>
     ${teamAverageTable(stats)}
   </div>`;

@@ -33,7 +33,7 @@ describe('compactHistory', () => {
       '2026-06-02': { totalScore: '880' },
       nope: { finalScore: 900 },
       '2026-06-01': { finalScore: 920 }
-    })).toEqual([{ date: '2026-06-01', score: 920 }, { date: '2026-06-02', score: 880 }]);
+    })).toEqual([{ date: '2026-06-01', score: 920, rounds: [] }, { date: '2026-06-02', score: 880, rounds: [] }]);
   });
 });
 
@@ -115,7 +115,7 @@ describe('monthlyLeaderboard', () => {
       '2026-07-01': { finalScore: 0 },
       '2026-07-02': { finalScore: 900 }
     });
-    expect(history).toEqual([{ date: '2026-07-02', score: 900 }]);
+    expect(history).toEqual([{ date: '2026-07-02', score: 900, rounds: [] }]);
     const result = enrichDashboard({ date: '2026-07-02', players: [{ id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 0 }, { date: '2026-07-02', score: 900 }] }] }, 2);
     expect(result.players[0].summary).toMatchObject({ average: 900, best: 900, lowest: 900, gamesPlayed: 1, daysMissed: 1 });
     expect(scoreForDate(result.players[0], '2026-07-01')).toBeNull();
@@ -141,9 +141,9 @@ describe('teamStats and chat wins', () => {
     const dashboard = enrichDashboard({
       date: '2026-07-03',
       players: [
-        { id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 0 }, { date: '2026-07-03', score: 700 }] },
-        { id: 'b', displayName: 'B', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 600 }] },
-        { id: 'c', displayName: 'C', excludedFromChatWins: true, history: [{ date: '2026-07-01', score: 990 }, { date: '2026-07-02', score: 950 }, { date: '2026-07-03', score: 950 }] }
+        { id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 900, rounds: [{ round: 1, score: 90 }] }, { date: '2026-07-02', score: 0 }, { date: '2026-07-03', score: 700 }] },
+        { id: 'b', displayName: 'B', history: [{ date: '2026-07-01', score: 800, rounds: [{ round: 1, score: 70 }] }, { date: '2026-07-02', score: 600 }] },
+        { id: 'c', displayName: 'C', excludedFromChatWins: true, history: [{ date: '2026-07-01', score: 990, rounds: [{ round: 1, score: 100 }] }, { date: '2026-07-02', score: 950 }, { date: '2026-07-03', score: 950 }] }
       ],
       locationsByDate: {
         '2026-07-01': { locations: [{ name: 'Paris, France', lat: 48.8, lng: 2.3 }] },
@@ -161,8 +161,38 @@ describe('teamStats and chat wins', () => {
     expect(stats.highDay.date).toBe('2026-07-01');
     expect(stats.lowDay.date).toBe('2026-07-01');
     expect(stats.bestInternational.name).toBe('Paris, France');
-    expect(stats.bestInternational.bestAppearance.topPlayer).toMatchObject({ displayName: 'A', score: 900 });
+    expect(stats.bestInternational.average).toBe(80);
+    expect(stats.bestInternational.bestAppearance.topPlayer).toMatchObject({ displayName: 'A', score: 90 });
     expect(chatWinStats(dashboard).totalWins).toBe(3);
+  });
+
+  it('uses round scores out of 100 for location accuracy instead of daily totals', async () => {
+    const { teamStats, enrichDashboard } = await import('../src/lib/stats.js');
+    const dashboard = enrichDashboard({
+      date: '2026-07-02',
+      players: [
+        { id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 900, rounds: [{ round: 1, score: 90 }, { round: 2, score: 40 }] }] },
+        { id: 'b', displayName: 'B', history: [{ date: '2026-07-01', score: 800, rounds: [{ round: 1, score: 70 }, { round: 2, score: 80 }] }] },
+        { id: 'c', displayName: 'C', excludedFromChatWins: true, history: [{ date: '2026-07-01', score: 1000, rounds: [{ round: 1, score: 100 }, { round: 2, score: 100 }] }] }
+      ],
+      locationsByDate: {
+        '2026-07-01': { locations: [
+          { name: 'Montevideo, Uruguay', lat: -34.9, lng: -56.1 },
+          { name: 'Austin, Texas, USA', lat: 30.2, lng: -97.7 }
+        ] }
+      }
+    }, 2);
+    const stats = teamStats(dashboard, 2);
+    expect(stats.bestLocations.map((location) => [location.name, location.average])).toEqual([
+      ['Montevideo, Uruguay', 80],
+      ['Austin, Texas, USA', 60]
+    ]);
+    expect(stats.toughestLocations.map((location) => [location.name, location.average])).toEqual([
+      ['Austin, Texas, USA', 60],
+      ['Montevideo, Uruguay', 80]
+    ]);
+    expect(stats.bestInternational).toMatchObject({ name: 'Montevideo, Uruguay', average: 80 });
+    expect(stats.bestInternational.bestAppearance.topPlayer).toMatchObject({ displayName: 'A', score: 90 });
   });
 });
 
@@ -171,8 +201,8 @@ it('builds continent splits for team and players from archived locations', async
   const dashboard = enrichDashboard({
     date: '2026-07-03',
     players: [
-      { id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 900 }, { date: '2026-07-02', score: 700 }, { date: '2026-07-03', score: 1000 }] },
-      { id: 'b', displayName: 'B', history: [{ date: '2026-07-01', score: 800 }, { date: '2026-07-02', score: 600 }, { date: '2026-07-03', score: 1000 }] }
+      { id: 'a', displayName: 'A', history: [{ date: '2026-07-01', score: 900, rounds: [{ round: 1, score: 90 }] }, { date: '2026-07-02', score: 700, rounds: [{ round: 1, score: 70 }] }, { date: '2026-07-03', score: 1000, rounds: [{ round: 1, score: 100 }] }] },
+      { id: 'b', displayName: 'B', history: [{ date: '2026-07-01', score: 800, rounds: [{ round: 1, score: 80 }] }, { date: '2026-07-02', score: 600, rounds: [{ round: 1, score: 60 }] }, { date: '2026-07-03', score: 1000, rounds: [{ round: 1, score: 100 }] }] }
     ],
     locationsByDate: {
       '2026-07-01': { locations: [{ name: 'Bath, England, United Kingdom', lat: 51.38, lng: -2.36 }] },
@@ -181,11 +211,11 @@ it('builds continent splits for team and players from archived locations', async
     }
   }, 3);
   expect(teamStats(dashboard, 3).continentStats.map((entry) => [entry.continent, entry.average, entry.days])).toEqual([
-    ['Europe', 850, 1],
-    ['Asia', 650, 1]
+    ['Europe', 85, 1],
+    ['Asia', 65, 1]
   ]);
   expect(playerContinentStats(dashboard, dashboard.players.find((player) => player.id === 'a'), 3).map((entry) => [entry.continent, entry.average])).toEqual([
-    ['Europe', 900],
-    ['Asia', 700]
+    ['Europe', 90],
+    ['Asia', 70]
   ]);
 });
