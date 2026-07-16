@@ -154,7 +154,7 @@ export function teamView(data) {
       <div><p>Chat group average</p><h2 id="team-title">${formatScore(stats.teamAverage)}</h2><span>${stats.gamesPlayed} played scores across ${stats.playedDays} qualifying days</span></div>
       <div class="team-scope-cards">
         <article><span>Chat group streak</span><strong>${longest?.summary?.chatLongestWinStreak ?? 0}</strong><small>${longest ? escapeHtml(longest.displayName) : 'No streak yet'}</small></article>
-        <article><span>Best continent</span><strong>${formatScore(stats.continentStats?.[0]?.average)}</strong><small>${escapeHtml(stats.continentStats?.[0]?.continent || 'Not enough data')}</small></article>
+        <article><span>Best continent</span><strong>${formatScore(stats.continentStats?.[0]?.average)}/100</strong><small>${escapeHtml(stats.continentStats?.[0]?.continent || 'Not enough data')}</small></article>
       </div>
     </section>
     <section class="team-extremes" aria-label="Team high and low days">
