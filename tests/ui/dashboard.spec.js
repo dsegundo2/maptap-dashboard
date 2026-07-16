@@ -234,11 +234,13 @@ test('team tab shows chat group averages, continent splits, locations, and strea
   await expect(page.getByText(/Excludes|excluding|chat excludes/i)).toHaveCount(0);
   await expect(page.getByText('Chat group streak')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Team by continent' })).toBeVisible();
-  await expect(page.getByText('Most accurate locations')).toBeVisible();
+  await expect(page.getByText('Most accurate U.S. locations')).toBeVisible();
+  await expect(page.getByText('Best international locations')).toBeVisible();
   await expect(page.getByText('Toughest locations')).toBeVisible();
   const tableRowCount = await page.locator('.team-table [role="row"]').count();
   expect(tableRowCount).toBeGreaterThan(1);
-  expect(tableRowCount).toBeLessThanOrEqual(30);
+  expect(tableRowCount).toBeLessThanOrEqual(6);
+  await expect(page.getByText(/led with|led the way/i)).toHaveCount(0);
   await expect(page.getByText('What else we could track')).toHaveCount(0);
   await expect(page.locator('.team-table-locations')).not.toHaveCount(0);
   await expect(page.locator('.team-table-locations').getByText('—')).toHaveCount(0);
@@ -252,6 +254,17 @@ test('team tab shows chat group averages, continent splits, locations, and strea
   await expect(teamTrail.locator('[data-tooltip-locations]')).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
+});
+
+test('monthly leaderboard can toggle between full standings and group chat', async ({ page }) => {
+  await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
+  await expect(page.locator('.monthly-toggle')).toContainText('Full standings');
+  await page.getByRole('button', { name: 'Group chat' }).click();
+  await expect(page.getByRole('heading', { name: 'July group chat leaderboard' })).toBeVisible();
+  await expect(page.locator('.monthly-toggle')).toContainText('Group chat');
+  await expect(page.getByText(/Excludes|excluding/i)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Group chat' }).click();
+  await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
 });
 
 test('shares the selected day as a group-specific website link', async ({ page }) => {

@@ -175,20 +175,21 @@ function playerRoundScoreForDate(player, date, roundIndex) {
   return Number.isFinite(score) && score >= 0 ? score : null;
 }
 
-function topRoundScoreForDate(players, date, roundIndex) {
-  return roundScoresForDate(players, date, roundIndex)
-    .toSorted((a, b) => b.score - a.score || a.player.displayName.localeCompare(b.player.displayName))[0] || null;
-}
 
-function isLikelyInternational(location) {
-  const name = String(location?.name || '');
-  if (/\b(usa|u\.s\.a\.|united states|alaska|hawaii)\b/i.test(name)) return false;
+function isLikelyUSLocation(location) {
+  const name = String(location?.name || '').toLowerCase();
+  if (/\b(canada|mexico|greenland|iceland|england|united kingdom|ireland|france|spain|portugal|germany|italy|greece|netherlands|belgium|norway|sweden|finland|denmark|japan|china|korea|india|iraq|iran|turkey|egypt|morocco|kenya|nigeria|south africa|ghana|ethiopia|tanzania|algeria|tunisia|comoros|argentina|chile|brazil|peru|colombia|ecuador|uruguay|paraguay|bolivia|venezuela|new zealand|australia|solomon islands|tonga|fiji|samoa|kiribati|tahiti)\b/.test(name)) return false;
+  if (/\b(usa|u\.s\.a\.|united states|alaska|hawaii|alabama|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming)\b/.test(name)) return true;
   const lat = Number(location?.lat);
   const lng = Number(location?.lng);
   const contiguousUS = lat >= 24 && lat <= 50 && lng >= -125 && lng <= -66;
   const alaska = lat >= 51 && lat <= 72 && lng >= -180 && lng <= -129;
   const hawaii = lat >= 18 && lat <= 23 && lng >= -161 && lng <= -154;
-  return !(contiguousUS || alaska || hawaii);
+  return contiguousUS || alaska || hawaii;
+}
+
+function isLikelyInternational(location) {
+  return !isLikelyUSLocation(location);
 }
 
 
@@ -276,14 +277,13 @@ export function teamStats(data, days = 30) {
       if (roundScores.length < 2) return;
       const roundAverage = Math.round(average(roundScores.map((entry) => entry.score)));
       const key = `${location.name}|${location.lat}|${location.lng}`;
-      const top = topRoundScoreForDate(players, day.date, index);
       const existing = locationMap.get(key) || { ...location, continent: continentForLocation(location), days: 0, totalAverage: 0, highAverage: null, lowAverage: null, dates: [], appearances: [], international: isLikelyInternational(location) };
       existing.days += 1;
       existing.totalAverage += roundAverage;
       existing.highAverage = Math.max(existing.highAverage ?? roundAverage, roundAverage);
       existing.lowAverage = Math.min(existing.lowAverage ?? roundAverage, roundAverage);
       existing.dates.push(day.date);
-      existing.appearances.push({ date: day.date, average: roundAverage, topPlayer: top ? { id: top.player.id, displayName: top.player.displayName, score: top.score } : null });
+      existing.appearances.push({ date: day.date, average: roundAverage });
       locationMap.set(key, existing);
       addContinentSample(continentMap, location, roundAverage);
     });
@@ -293,9 +293,9 @@ export function teamStats(data, days = 30) {
     const bestAppearance = location.appearances.toSorted((a, b) => b.average - a.average || b.date.localeCompare(a.date))[0] || null;
     return { ...location, average: averageScore, bestAppearance };
   });
-  const bestLocations = locations.toSorted((a, b) => b.average - a.average || a.name.localeCompare(b.name)).slice(0, 5);
+  const bestUSLocations = locations.filter((location) => !location.international).toSorted((a, b) => b.average - a.average || a.name.localeCompare(b.name)).slice(0, 5);
+  const bestInternationalLocations = locations.filter((location) => location.international).toSorted((a, b) => b.average - a.average || a.name.localeCompare(b.name)).slice(0, 5);
   const toughestLocations = locations.toSorted((a, b) => a.average - b.average || a.name.localeCompare(b.name)).slice(0, 5);
-  const bestInternational = locations.filter((location) => location.international).toSorted((a, b) => b.average - a.average || a.name.localeCompare(b.name))[0] || null;
   const longestStreakPlayer = players.toSorted((a, b) => (b.summary?.chatLongestWinStreak ?? 0) - (a.summary?.chatLongestWinStreak ?? 0) || (b.summary?.chatWins ?? 0) - (a.summary?.chatWins ?? 0) || a.displayName.localeCompare(b.displayName))[0] || null;
   const continentStats = rankContinentStats([...continentMap.values()].map((entry) => ({ ...entry, average: entry.total / entry.samples, days: entry.samples })));
   return {
@@ -306,9 +306,9 @@ export function teamStats(data, days = 30) {
     teamAverage: Number.isFinite(teamAverage) ? Math.round(teamAverage) : null,
     highDay,
     lowDay,
-    bestLocations,
+    bestUSLocations,
+    bestInternationalLocations,
     toughestLocations,
-    bestInternational,
     longestStreakPlayer,
     continentStats,
     chartHistory: daily.map((day) => ({ date: day.date, score: day.average, locations: day.locations })).filter((day) => Number.isFinite(day.score))

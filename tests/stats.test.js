@@ -160,9 +160,7 @@ describe('teamStats and chat wins', () => {
     expect(stats.teamAverage).toBe(850);
     expect(stats.highDay.date).toBe('2026-07-01');
     expect(stats.lowDay.date).toBe('2026-07-01');
-    expect(stats.bestInternational.name).toBe('Paris, France');
-    expect(stats.bestInternational.average).toBe(80);
-    expect(stats.bestInternational.bestAppearance.topPlayer).toMatchObject({ displayName: 'A', score: 90 });
+    expect(stats.bestInternationalLocations[0]).toMatchObject({ name: 'Paris, France', average: 80 });
     expect(chatWinStats(dashboard).totalWins).toBe(3);
   });
 
@@ -183,16 +181,16 @@ describe('teamStats and chat wins', () => {
       }
     }, 2);
     const stats = teamStats(dashboard, 2);
-    expect(stats.bestLocations.map((location) => [location.name, location.average])).toEqual([
+    expect(stats.bestInternationalLocations.map((location) => [location.name, location.average])).toEqual([
       ['Montevideo, Uruguay', 80],
+    ]);
+    expect(stats.bestUSLocations.map((location) => [location.name, location.average])).toEqual([
       ['Austin, Texas, USA', 60]
     ]);
     expect(stats.toughestLocations.map((location) => [location.name, location.average])).toEqual([
       ['Austin, Texas, USA', 60],
       ['Montevideo, Uruguay', 80]
     ]);
-    expect(stats.bestInternational).toMatchObject({ name: 'Montevideo, Uruguay', average: 80 });
-    expect(stats.bestInternational.bestAppearance.topPlayer).toMatchObject({ displayName: 'A', score: 90 });
   });
 });
 

@@ -95,10 +95,12 @@ function playerSummary(data, spotlightId) {
   </section>`;
 }
 
-function monthlyBoard(data, className = '') {
-  const monthly = monthlyLeaderboard(data);
+function monthlyBoard(data, className = '', scope = 'full') {
+  const canToggle = data.players.some((player) => player.excludedFromChatWins === true);
+  const isGroupChat = scope === 'group-chat' && canToggle;
+  const monthly = monthlyLeaderboard(data, data.date, isGroupChat ? { playerFilter: (player) => player.excludedFromChatWins !== true } : {});
   return `<section class="monthly-leaderboard ${className}" aria-labelledby="monthly-leaderboard-title">
-    <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div><span>Full standings</span></header>
+    <header><div><h2 id="monthly-leaderboard-title">${monthly.label}${isGroupChat ? ' group chat' : ''} leaderboard</h2><p>Ranked by total wins</p></div>${canToggle ? `<div class="monthly-toggle" aria-label="Monthly leaderboard scope"><span>${isGroupChat ? 'Group chat' : 'Full standings'}</span><button type="button" data-action="toggle-monthly-scope" aria-pressed="${isGroupChat}">Group chat</button></div>` : '<span>Full standings</span>'}</header>
     <div class="monthly-ranks">${monthly.players.map((entry) => `<button class="monthly-rank-row rank-${entry.rank}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${entry.rank}">
       ${rankMedal(entry.rank - 1)}
       <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
@@ -132,7 +134,8 @@ function teamDayCard(title, day, tone) {
 function teamAverageTable(stats) {
   const rankedDays = stats.daily
     .filter((day) => Number.isFinite(day.average) && day.locations?.length)
-    .toSorted((a, b) => b.average - a.average || b.high - a.high || b.date.localeCompare(a.date));
+    .toSorted((a, b) => b.average - a.average || b.high - a.high || b.date.localeCompare(a.date))
+    .slice(0, 5);
   return `<section class="team-average-table surface" aria-labelledby="team-average-title">
     <div class="section-heading"><div><h2 id="team-average-title">Best chat group days</h2><p>Ranked by average score for days with archived locations. Requires at least two scores.</p></div></div>
     <div class="team-table" role="table" aria-label="Best chat group average scores over the last 30 days">
@@ -164,16 +167,16 @@ export function teamView(data) {
     ${continentSplit('Team by continent', stats.continentStats, 'Average chat-group round score by archived location continent.')}
     <section class="chart-card team-score-trail"><div class="section-heading"><div><h2>Chat group score trail</h2><p>Daily average of subgroup players who played; requires at least two scores.</p></div></div>${sparkline(stats.chartHistory, { label: 'Team average score history', height: 142, endDate: data.date })}</section>
     <section class="location-insights" aria-label="Location accuracy insights">
-      ${locationsList('Most accurate locations', stats.bestLocations, 'best')}
+      ${locationsList('Most accurate U.S. locations', stats.bestUSLocations, 'best')}
+      ${locationsList('Best international locations', stats.bestInternationalLocations, 'best')}
       ${locationsList('Toughest locations', stats.toughestLocations, 'tough')}
-      ${stats.bestInternational ? `<section class="international-card"><p>Best international location</p><h3>${escapeHtml(stats.bestInternational.name)}</h3><span>${formatScore(stats.bestInternational.average)}/100 average${stats.bestInternational.bestAppearance ? ` · ${formatDate(stats.bestInternational.bestAppearance.date, { month: 'long' })}${stats.bestInternational.bestAppearance.topPlayer ? ` · ${escapeHtml(stats.bestInternational.bestAppearance.topPlayer.displayName)} led with ${formatScore(stats.bestInternational.bestAppearance.topPlayer.score)}/100` : ''}` : ''}</span></section>` : ''}
     </section>
     ${teamAverageTable(stats)}
   </div>`;
 }
 
 export function todayView(data, options = {}) {
-  const { minimumDate, maximumDate, calendarOpen, standingsLoading } = options;
+  const { minimumDate, maximumDate, calendarOpen, standingsLoading, monthlyScope = 'full' } = options;
   const isToday = data.date === maximumDate;
   const leader = data.players.find((player) => player.playedToday);
   const notPlayed = data.players.filter((player) => !player.playedToday).length;
@@ -201,7 +204,7 @@ export function todayView(data, options = {}) {
 
     ${isToday ? '' : locationTrail(data.date, data.locationsByDate?.[data.date]?.locations)}
 
-    ${monthlyBoard(data, 'monthly-home')}
+    ${monthlyBoard(data, 'monthly-home', monthlyScope)}
     ${calendarOpen ? calendarPicker(minimumDate, maximumDate, data.date) : ''}
   </div>`;
 }
