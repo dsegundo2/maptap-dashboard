@@ -95,15 +95,21 @@ function playerSummary(data, spotlightId) {
   </section>`;
 }
 
-function monthlyBoard(data, className = '') {
+function monthlyBoard(data, className = '', { includesToday = false } = {}) {
   const monthly = monthlyLeaderboard(data, data.date);
+  const playedToday = data.players.filter((player) => player.playedToday && Number.isFinite(player.score));
+  const topTodayScore = playedToday.length ? Math.max(...playedToday.map((player) => player.score)) : null;
+  const todayWinnerIds = new Set(includesToday
+    ? playedToday.filter((player) => player.score === topTodayScore).map((player) => player.id)
+    : []);
+  const hasTodayBonus = todayWinnerIds.size > 0;
   return `<section class="monthly-leaderboard ${className}" aria-labelledby="monthly-leaderboard-title">
-    <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div></header>
+    <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>${hasTodayBonus ? 'Today’s win is marked +1' : 'Ranked by total wins'}</p></div></header>
     <div class="monthly-ranks">${monthly.players.map((entry) => `<button class="monthly-rank-row rank-${entry.rank}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${entry.rank}">
       ${rankMedal(entry.rank - 1)}
       <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
-      <span class="monthly-average"><strong>${entry.wins}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
-      ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : entry.movement < 0 ? `<span class="monthly-movement down" aria-label="Moved down ${Math.abs(entry.movement)} ${entry.movement === -1 ? 'place' : 'places'}">${icon('arrow-down', 15)}<small>${Math.abs(entry.movement)}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
+      <span class="monthly-average"><strong>${entry.wins - (todayWinnerIds.has(entry.id) ? 1 : 0)}${todayWinnerIds.has(entry.id) ? '<b class="monthly-bonus" aria-label="Includes today’s win">+1</b>' : ''}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
+      ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
     </button>`).join('')}</div>
   </section>`;
 }
@@ -209,7 +215,7 @@ export function todayView(data, options = {}) {
 
     ${isToday ? '' : locationTrail(data.date, data.locationsByDate?.[data.date]?.locations)}
 
-    ${monthlyBoard(scopedData, 'monthly-home')}
+    ${monthlyBoard(scopedData, 'monthly-home', { includesToday: isToday })}
     ${calendarOpen ? calendarPicker(minimumDate, maximumDate, data.date) : ''}
   </div>`;
 }

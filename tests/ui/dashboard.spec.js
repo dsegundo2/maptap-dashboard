@@ -187,6 +187,8 @@ test('monthly leaderboard handles movement without placeholder slots', async ({ 
   await expect(page.locator('.monthly-rank-row.rank-1')).toHaveCount(2);
   await expect(page.locator('.monthly-rank-row.rank-1 .rank.gold')).toHaveCount(2);
   await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
+  await expect(page.locator('.monthly-bonus')).toHaveCount(1);
+  await expect(page.getByText('Today’s win is marked +1')).toBeVisible();
   await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(0);
   await expect(page.locator('.monthly-rank-row[data-player="empty"]')).toContainText('0 games · — avg');
 });
