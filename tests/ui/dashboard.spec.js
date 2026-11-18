@@ -186,12 +186,13 @@ test('monthly leaderboard handles movement without placeholder slots', async ({ 
   await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
-  await expect(page.getByLabel('Moved up 1 place')).toBeVisible();
+  await expect(page.getByLabel('Moved up 1 place')).toHaveCount(0);
   await expect(page.getByLabel('Moved down 1 place')).toHaveCount(0);
   await expect(page.locator('.monthly-rank-row.rank-1')).toHaveCount(2);
   await expect(page.locator('.monthly-rank-row.rank-1 .rank.gold')).toHaveCount(2);
   await expect(page.locator('.monthly-rank-row')).toHaveCount(3);
-  await expect(page.locator('.monthly-bonus')).toHaveCount(1);
+  await expect(page.locator('.monthly-today-bonus')).toHaveCount(1);
+  await expect(page.locator('.monthly-today-bonus')).toHaveText('+1');
   await expect(page.getByText('Today’s win is marked +1')).toBeVisible();
   await expect(page.locator('.monthly-rank-row.is-empty')).toHaveCount(0);
   await expect(page.locator('.monthly-rank-row[data-player="empty"]')).toContainText('0 games · — avg');

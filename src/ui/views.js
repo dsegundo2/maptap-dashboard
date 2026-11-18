@@ -108,8 +108,8 @@ function monthlyBoard(data, className = '', { includesToday = false } = {}) {
     <div class="monthly-ranks">${monthly.players.map((entry) => `<button class="monthly-rank-row rank-${entry.rank}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${entry.rank}">
       ${rankMedal(entry.rank - 1)}
       <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
-      <span class="monthly-average"><strong>${entry.wins - (todayWinnerIds.has(entry.id) ? 1 : 0)}${todayWinnerIds.has(entry.id) ? '<b class="monthly-bonus" aria-label="Includes today’s win">+1</b>' : ''}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
-      ${entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
+      <span class="monthly-average"><strong>${entry.wins - (todayWinnerIds.has(entry.id) ? 1 : 0)}</strong><small>${entry.wins === 1 ? 'win' : 'wins'}</small></span>
+      ${todayWinnerIds.has(entry.id) ? '<span class="monthly-movement up monthly-today-bonus" aria-label="Includes today’s win">+1</span>' : entry.movement > 0 ? `<span class="monthly-movement up" aria-label="Moved up ${entry.movement} ${entry.movement === 1 ? 'place' : 'places'}">${icon('arrow-up', 15)}<small>${entry.movement}</small></span>` : '<span class="monthly-movement neutral" aria-label="No rank movement"></span>'}
     </button>`).join('')}</div>
   </section>`;
 }
