@@ -141,15 +141,14 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .monthly-archive-heading h2 { margin: 0; font: 700 clamp(26px, 7vw, 34px)/1.05 Georgia, serif; letter-spacing: -.035em; }
 .monthly-archive-heading > span { padding: 7px 10px; color: var(--forest); background: #f0f4eb; border: 1px solid #d9e4d3; border-radius: 999px; font-size: 11px; font-weight: 850; }
 .monthly-archive-note { margin: -8px 0 14px; color: var(--ink-soft); font-size: 11px; }
-.monthly-archive-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.monthly-archive-pagination { display: grid; grid-template-columns: minmax(80px, 1fr) auto minmax(80px, 1fr); align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #e3e4dc; }
-.monthly-archive-pagination > span { color: var(--ink-soft); font-size: 10px; font-weight: 800; white-space: nowrap; }
-.monthly-archive-pagination button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 34px; padding: 0 10px; color: var(--forest); background: #f0f4eb; border: 1px solid #d6e0d1; border-radius: 9px; font-size: 11px; font-weight: 850; cursor: pointer; }
-.monthly-archive-pagination button:last-child { justify-self: end; }
-.monthly-archive-pagination button:first-child svg { transform: rotate(180deg); }
-.monthly-archive-pagination button:hover:not(:disabled) { background: #e4eddf; border-color: #aebfac; }
-.monthly-archive-pagination button:disabled { color: #9aa39b; background: #f5f6f1; border-color: #e6e8e1; cursor: default; }
-.monthly-archive-card { min-width: 0; padding: 14px; background: #f9f9f4; border: 1px solid #e2e3db; border-radius: 14px; }
+.monthly-archive-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; touch-action: pan-x; border-radius: 14px; }
+.monthly-archive-carousel::-webkit-scrollbar { display: none; }
+.monthly-archive-card { flex: 0 0 100%; min-width: 0; min-height: 142px; padding: 18px; scroll-snap-align: start; scroll-snap-stop: always; background: #f9f9f4; border: 1px solid #e2e3db; border-radius: 14px; }
+.monthly-archive-controls { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 10px; margin-top: 14px; color: var(--ink-soft); font-size: 10px; font-weight: 850; text-align: center; }
+.monthly-archive-controls button { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; color: var(--forest); background: #f0f4eb; border: 1px solid #d6e0d1; border-radius: 50%; cursor: pointer; }
+.monthly-archive-controls button:first-child svg { transform: rotate(180deg); }
+.monthly-archive-controls button:hover:not(:disabled) { background: #e4eddf; border-color: #aebfac; }
+.monthly-archive-controls button:disabled { color: #9aa39b; background: #f5f6f1; border-color: #e6e8e1; cursor: default; }
 .monthly-archive-card h3 { margin: 0 0 9px; font: 700 18px/1 Georgia, serif; letter-spacing: -.02em; }
 .monthly-archive-card ol { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .monthly-archive-card li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 7px; min-height: 30px; border-top: 1px solid #ebebe4; font-size: 11px; }
@@ -253,7 +252,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
   .team-table [role="row"] { min-width: 720px; grid-template-columns: 78px 54px 74px 94px minmax(220px, 1fr); }
   .scope-stat { grid-template-columns: 1fr auto; }
   .monthly-archive { padding: 17px; }
-  .monthly-archive-grid { grid-template-columns: 1fr; }
 }
 .bottom-nav { grid-template-columns: repeat(4, 1fr); }
 @media (min-width: 900px) { .bottom-nav { grid-template-columns: 1fr; } }

@@ -24,8 +24,7 @@ const state = {
   source: 'snapshot',
   message: '',
   fallbackData: null,
-  requestedDate: null,
-  archivePage: 0
+  requestedDate: null
 };
 
 function shell(content = '') {
@@ -66,10 +65,36 @@ function render() {
       standingsLoading: state.standingsLoading,
       fullStandings: state.fullStandings
     }),
-    players: () => playersView(state.data, state.spotlightPlayer, { archivePage: state.archivePage }),
+    players: () => playersView(state.data, state.spotlightPlayer),
     team: () => teamView(state.data)
   };
   app.innerHTML = shell(views[state.view]());
+  bindArchiveCarousels();
+}
+
+
+function syncArchiveCarousel(carousel) {
+  const archive = carousel.closest('.monthly-archive');
+  if (!archive) return;
+  const current = Math.round(carousel.scrollLeft / carousel.clientWidth);
+  const total = carousel.children.length;
+  const newer = archive.querySelector('[data-action="newer-archive-month"]');
+  const older = archive.querySelector('[data-action="older-archive-month"]');
+  const position = archive.querySelector('[data-archive-position]');
+  if (newer) newer.disabled = current <= 0;
+  if (older) older.disabled = current >= total - 1;
+  if (position) position.textContent = `${current + 1} of ${total}`;
+}
+
+function bindArchiveCarousels() {
+  app.querySelectorAll('[data-archive-carousel]').forEach((carousel) => {
+    let frame;
+    carousel.addEventListener('scroll', () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => syncArchiveCarousel(carousel));
+    }, { passive: true });
+    syncArchiveCarousel(carousel);
+  });
 }
 
 function setMessage(message) {
@@ -211,10 +236,12 @@ app.addEventListener('click', (event) => {
     render();
     return;
   }
-  if (action === 'newer-archive-months' || action === 'older-archive-months') {
-    state.archivePage = Math.max(0, state.archivePage + (action === 'older-archive-months' ? 1 : -1));
-    render();
-    window.requestAnimationFrame(() => document.querySelector('.monthly-archive')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  if (action === 'newer-archive-month' || action === 'older-archive-month') {
+    const carousel = event.target.closest('.monthly-archive')?.querySelector('[data-archive-carousel]');
+    if (!carousel) return;
+    const current = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    const next = Math.max(0, Math.min(carousel.children.length - 1, current + (action === 'older-archive-month' ? 1 : -1)));
+    carousel.scrollTo({ left: next * carousel.clientWidth, behavior: 'smooth' });
     return;
   }
   if (action === 'open-calendar') {

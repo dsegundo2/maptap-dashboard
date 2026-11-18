@@ -233,7 +233,7 @@ function lastDateOfMonth(month) {
   return addDays(nextMonth.toISOString().slice(0, 10), -1);
 }
 
-function completedMonthlyBoards(data, startMonth = '2026-07') {
+function completedMonthlyBoards(data, startMonth = '2026-07', options = {}) {
   const currentMonth = data.date.slice(0, 7);
   const lastCompleteMonth = addDays(`${currentMonth}-01`, -1).slice(0, 7);
   const months = [];
@@ -243,33 +243,30 @@ function completedMonthlyBoards(data, startMonth = '2026-07') {
     next.setUTCMonth(next.getUTCMonth() + 1);
     month = next.toISOString().slice(0, 7);
   }
-  return months.map((month) => monthlyLeaderboard(data, lastDateOfMonth(month))).toReversed();
+  return months.map((month) => monthlyLeaderboard(data, lastDateOfMonth(month), options)).toReversed();
 }
 
-function monthlyArchive(data, requestedPage = 0) {
-  const boards = completedMonthlyBoards(data);
+function monthlyArchive(data) {
+  const boards = completedMonthlyBoards(data, '2026-07', {
+    playerFilter: (player) => player.excludedFromChatWins !== true
+  });
   if (!boards.length) return '';
-  const pageSize = 6;
-  const pageCount = Math.ceil(boards.length / pageSize);
-  const page = Math.min(Math.max(0, requestedPage), pageCount - 1);
-  const pageBoards = boards.slice(page * pageSize, (page + 1) * pageSize);
-  const years = new Set(pageBoards.map((board) => board.month.slice(0, 4)));
-  return `<section class="monthly-archive" aria-labelledby="monthly-archive-title" data-archive-page="${page}">
-    <header class="monthly-archive-heading"><div><p>Hall of champions</p><h2 id="monthly-archive-title">Monthly archive</h2></div><span>${years.size === 1 ? [...years][0] : `${[...years].at(-1)}–${[...years][0]}`}</span></header>
-    <p class="monthly-archive-note">Newest months first · top three by wins</p>
-    <div class="monthly-archive-grid" aria-live="polite">${pageBoards.map((board) => `<article class="monthly-archive-card"><h3>${board.label}</h3><ol>${board.players.slice(0, 3).map((player) => `<li><span class="rank ${['gold', 'silver', 'bronze'][Math.min(player.rank - 1, 2)] || ''}">${player.rank}</span><strong>${escapeHtml(player.displayName)}</strong><small>${player.wins} ${player.wins === 1 ? 'Win' : 'Wins'}</small></li>`).join('')}</ol></article>`).join('')}</div>
-    ${pageCount > 1 ? `<nav class="monthly-archive-pagination" aria-label="Monthly archive pages"><button type="button" data-action="newer-archive-months" ${page === 0 ? 'disabled' : ''}>${icon('chevron', 15)}<span>Newer</span></button><span>Page ${page + 1} of ${pageCount}</span><button type="button" data-action="older-archive-months" ${page === pageCount - 1 ? 'disabled' : ''}><span>Older</span>${icon('chevron', 15)}</button></nav>` : ''}
+  return `<section class="monthly-archive" aria-labelledby="monthly-archive-title">
+    <header class="monthly-archive-heading"><div><p>Hall of champions</p><h2 id="monthly-archive-title">Monthly archive</h2></div><span>${boards[0].month.slice(0, 4)}</span></header>
+    <p class="monthly-archive-note">Group chat only · top three by wins · newest month first</p>
+    <div class="monthly-archive-carousel" data-archive-carousel tabindex="0" aria-label="Monthly group chat champions. Swipe left for older months.">${boards.map((board) => `<article class="monthly-archive-card" data-archive-month="${board.month}" aria-label="${board.label} group chat champions"><h3>${board.label}</h3><ol>${board.players.slice(0, 3).map((player) => `<li><span class="rank ${['gold', 'silver', 'bronze'][Math.min(player.rank - 1, 2)] || ''}">${player.rank}</span><strong>${escapeHtml(player.displayName)}</strong><small>${player.wins} ${player.wins === 1 ? 'Win' : 'Wins'}</small></li>`).join('')}</ol></article>`).join('')}</div>
+    ${boards.length > 1 ? `<div class="monthly-archive-controls"><button type="button" data-action="newer-archive-month" aria-label="Show newer archive month" disabled>${icon('chevron', 15)}</button><span data-archive-position>1 of ${boards.length}</span><button type="button" data-action="older-archive-month" aria-label="Show older archive month">${icon('chevron', 15)}</button></div>` : ''}
   </section>`;
 }
 
-export function playersView(data, selectedId, options = {}) {
+export function playersView(data, selectedId) {
   const playerList = data.players.toSorted((a, b) => (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
   const leader = data.players.find((player) => player.playedToday);
-  const selected = data.players.find((player) => player.id === selectedId) || data.players.find((player) => player.id === options.spotlightId) || leader || playerList[0];
+  const selected = data.players.find((player) => player.id === selectedId) || leader || playerList[0];
   return `<div class="view content-view" data-view="players">
     <header class="players-heading"><div><h1>Players</h1><p>${data.players.length} total</p></div></header>
     <section class="player-list" aria-label="Players">${playerList.map((player) => playerCard(player, player.id === selected?.id)).join('')}</section>
     ${playerSummary(data, selected?.id)}
-    ${monthlyArchive(data, options.archivePage)}
+    ${monthlyArchive(data)}
   </div>`;
 }

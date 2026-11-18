@@ -76,7 +76,7 @@ test('players view shows player summaries instead of the monthly leaderboard', a
   await expect(mapTapLink).toHaveAttribute('target', '_blank');
 });
 
-test('monthly archive starts with recent months and paginates older history', async ({ page }) => {
+test('monthly archive is a newest-first group-chat carousel', async ({ page }) => {
   const archiveMonths = ['2026-07', '2026-08', '2026-09', '2026-10', '2026-11', '2026-12', '2027-01', '2027-02', '2027-03'];
   const players = ['Avery', 'Blair', 'Casey'].map((displayName, playerIndex) => ({
     id: displayName.toLowerCase(),
@@ -90,19 +90,23 @@ test('monthly archive starts with recent months and paginates older history', as
     }))
   }));
   await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2027-04-02', globalPlayers: 1000, players } }));
-  await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
-  await page.goto('/?archive-pagination-test=1');
+  await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true, excludedFromChatWins: displayName === 'Casey' })) } } } }));
+  await page.goto('/?archive-carousel-test=1');
   await page.getByRole('button', { name: 'Players', exact: true }).click();
   const archive = page.locator('.monthly-archive');
-  await expect(archive).toContainText('Newest months first');
-  await expect(archive.locator('.monthly-archive-card h3')).toHaveText(['March', 'February', 'January', 'December', 'November', 'October']);
-  await expect(archive.getByRole('button', { name: 'Newer', exact: true })).toBeDisabled();
-  await expect(archive.getByRole('button', { name: 'Older', exact: true })).toBeEnabled();
-  await archive.getByRole('button', { name: 'Older', exact: true }).click();
-  await expect(archive).toHaveAttribute('data-archive-page', '1');
-  await expect(archive.locator('.monthly-archive-card h3')).toHaveText(['September', 'August', 'July']);
-  await expect(archive.getByRole('button', { name: 'Newer', exact: true })).toBeEnabled();
-  await expect(archive.getByRole('button', { name: 'Older', exact: true })).toBeDisabled();
+  const carousel = archive.locator('[data-archive-carousel]');
+  await expect(archive).toContainText('Group chat only');
+  await expect(carousel).toHaveAttribute('aria-label', /Swipe left for older months/);
+  await expect(carousel.locator('.monthly-archive-card')).toHaveCount(9);
+  await expect(carousel.locator('.monthly-archive-card').first().getByRole('heading')).toHaveText('March');
+  await expect(carousel).not.toContainText('Casey');
+  await expect(archive.locator('[data-archive-position]')).toHaveText('1 of 9');
+  await expect(archive.getByRole('button', { name: 'Show newer archive month' })).toBeDisabled();
+  await archive.getByRole('button', { name: 'Show older archive month' }).click();
+  await expect(archive.locator('[data-archive-position]')).toHaveText('2 of 9');
+  const carouselPosition = await carousel.evaluate((element) => Math.round(element.scrollLeft / element.clientWidth));
+  expect(carouselPosition).toBe(1);
+  await expect(archive.getByRole('button', { name: 'Show newer archive month' })).toBeEnabled();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
 });
