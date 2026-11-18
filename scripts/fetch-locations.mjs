@@ -8,6 +8,11 @@ const today = dateKey(new Date(), config.timezone);
 let previous = { dates: {} };
 try { previous = JSON.parse(await readFile(destination, 'utf8')); } catch { /* first archive */ }
 
+function isCompleteArchive(entry) {
+  return Array.isArray(entry?.locations) && entry.locations.length === 5
+    && entry.locations.every((location) => location?.name && Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lng)));
+}
+
 const entries = await Promise.all(pastLocationDates(today).map(async (date) => {
   const dayKey = maptapDayKey(date);
   try {
@@ -15,7 +20,7 @@ const entries = await Promise.all(pastLocationDates(today).map(async (date) => {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return [date, { dayKey, locations: parseDailyLocations(await response.text()) }];
   } catch (error) {
-    if (previous.dates?.[date]) return [date, previous.dates[date]];
+    if (isCompleteArchive(previous.dates?.[date])) return [date, previous.dates[date]];
     console.warn(`Location archive unavailable for ${date} (${dayKey}): ${error.message}`);
     return null;
   }

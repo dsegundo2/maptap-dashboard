@@ -1,6 +1,6 @@
 import './styles.css';
 import { fetchLiveDashboard, fetchStandingsForDate, fetchStaticDashboard, readCache, writeCache } from './lib/data.js';
-import { addDays, dashboardForDate, leaderboardDateRange, standingsCoverPlayers } from './lib/stats.js';
+import { addDays, dashboardForDate, dateKey, leaderboardDateRange, standingsCoverPlayers } from './lib/stats.js';
 import { icon, logo } from './ui/icons.js';
 import { formatDate, formatUpdated } from './ui/format.js';
 import { playersView, teamView, todayView } from './ui/views.js';
@@ -22,7 +22,9 @@ const state = {
   loading: true,
   refreshing: false,
   source: 'snapshot',
-  message: ''
+  message: '',
+  fallbackData: null,
+  requestedDate: null
 };
 
 function shell(content = '') {
@@ -49,7 +51,10 @@ function render() {
     return;
   }
   const dateRange = leaderboardDateRange(state.data.date);
-  if (!state.selectedDate || state.selectedDate < dateRange.minimum || state.selectedDate > dateRange.maximum) state.selectedDate = dateRange.maximum;
+  const initialDate = state.selectedDate || state.requestedDate;
+  if (!initialDate || initialDate < dateRange.minimum || initialDate > dateRange.maximum) state.selectedDate = dateRange.maximum;
+  else state.selectedDate = initialDate;
+  state.requestedDate = null;
   const selectedData = dashboardForDate(state.data, state.selectedDate, state.standingsByDate[state.selectedDate]);
   const views = {
     today: () => todayView(selectedData, {
@@ -93,7 +98,7 @@ async function refresh({ quiet = false } = {}) {
     return data;
   } catch (error) {
     console.warn('Live refresh unavailable; keeping the latest snapshot.', error);
-    if (!state.data) state.data = await fetchStaticDashboard(requestedGroup);
+    if (!state.data) state.data = state.fallbackData || await fetchStaticDashboard(requestedGroup);
     state.source = 'snapshot';
     if (!quiet) setMessage('MapTap is taking a breather—showing the latest snapshot.');
     return state.data;
@@ -252,26 +257,23 @@ document.addEventListener('keydown', (event) => {
 });
 
 async function init() {
-  try {
-    const snapshot = await fetchStaticDashboard(requestedGroup);
-    state.data = readCache(snapshot.configuredPlayers, snapshot.groupId) || snapshot;
-    document.title = `MapTap Dashboard — ${state.data.groupName}`;
-    state.loading = false;
-  } catch (error) {
-    console.warn('Static snapshot unavailable.', error);
-    const cached = readCache(undefined, requestedGroup || 'default');
-    if (cached) {
-      state.data = cached;
-      state.loading = false;
-    }
-  }
-  render();
   const groupRouteIndex = requestedGroup ? routeParts.findIndex((part) => part.toLowerCase() === requestedGroup.toLowerCase()) : -1;
   const routeDate = groupRouteIndex >= 0 ? routeParts[groupRouteIndex + 1] : null;
-  const requestedDate = routeDate || new URLSearchParams(window.location.search).get('date');
-  const range = leaderboardDateRange(state.data?.date || '2026-06-01');
-  if (requestedDate && requestedDate >= range.minimum && requestedDate <= range.maximum) state.selectedDate = requestedDate;
-  else state.selectedDate = state.data?.date || null;
+  state.requestedDate = routeDate || new URLSearchParams(window.location.search).get('date');
+  try {
+    const snapshot = await fetchStaticDashboard(requestedGroup);
+    state.fallbackData = snapshot;
+    const today = dateKey(new Date());
+    state.data = readCache(snapshot.configuredPlayers, snapshot.groupId, today);
+    document.title = `MapTap Dashboard — ${snapshot.groupName}`;
+  } catch (error) {
+    console.warn('Static snapshot unavailable.', error);
+    const cached = readCache(undefined, requestedGroup || 'default', dateKey(new Date()));
+    if (cached) {
+      state.data = cached;
+    }
+  }
+  state.loading = false;
   render();
   await refresh({ quiet: true });
 }

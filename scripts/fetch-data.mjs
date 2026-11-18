@@ -18,24 +18,34 @@ async function getJson(url, options = {}) {
 
 const leaderboardPayload = await getJson(`${LEADERBOARD_ROOT}daily-${today}.json?alt=media&v=${Date.now()}`);
 const leaderboard = leaderboardPayload.leaderboard;
-const profiles = new Map();
-
-for (const [index, user] of uniqueUsers.entries()) {
-  const payload = await getJson(PROFILE_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: { nickname: user.maptapUsername } })
-  });
-  const profile = payload.result?.user;
-  if (!payload.result?.success || !profile || profile.leaderboardVisible === false) {
-    console.warn(`Public profile unavailable; keeping configured player visible: ${user.maptapUsername}`);
-    profiles.set(user.maptapUsername.toLowerCase(), null);
-    if (index < uniqueUsers.length - 1) await new Promise((resolve) => setTimeout(resolve, 650));
-    continue;
+const profileResults = new Array(uniqueUsers.length);
+let nextProfileIndex = 0;
+const fetchProfileWorker = async (workerIndex) => {
+  // Bound the public callable to three requests at a time. This avoids the
+  // 10–15 second serial request chain without turning a refresh into a burst.
+  if (workerIndex) await new Promise((resolve) => setTimeout(resolve, workerIndex * 250));
+  while (nextProfileIndex < uniqueUsers.length) {
+    const index = nextProfileIndex;
+    nextProfileIndex += 1;
+    const user = uniqueUsers[index];
+    try {
+      const payload = await getJson(PROFILE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { nickname: user.maptapUsername } })
+      });
+      const profile = payload.result?.user;
+      if (!payload.result?.success || !profile || profile.leaderboardVisible === false) throw new Error('Profile is not public');
+      profileResults[index] = [user.maptapUsername.toLowerCase(), profile];
+    } catch (error) {
+      console.warn(`Public profile unavailable; keeping configured player visible: ${user.maptapUsername} (${error.message})`);
+      profileResults[index] = [user.maptapUsername.toLowerCase(), null];
+    }
+    if (nextProfileIndex < uniqueUsers.length) await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  profiles.set(user.maptapUsername.toLowerCase(), profile);
-  if (index < uniqueUsers.length - 1) await new Promise((resolve) => setTimeout(resolve, 650));
-}
+};
+await Promise.all(Array.from({ length: Math.min(3, uniqueUsers.length) }, (_, index) => fetchProfileWorker(index)));
+const profiles = new Map(profileResults);
 
 const groupData = Object.fromEntries(groups.map((group) => {
   const players = group.players.map((user, index) => {

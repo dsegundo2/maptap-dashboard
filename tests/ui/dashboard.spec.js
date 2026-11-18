@@ -16,6 +16,7 @@ const addDays = (date, amount) => {
   return value.toISOString().slice(0, 10);
 };
 const shortDate = (date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+const monthName = (date) => new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
 const playerSnapshot = (config) => scoreSnapshot.players.find((player) => player.maptapUsername === config.maptapUsername);
 const scoreOn = (config, date) => playerSnapshot(config)?.history.find((game) => game.date === date)?.score ?? null;
 
@@ -257,14 +258,15 @@ test('team tab shows chat group averages, continent splits, locations, and strea
 });
 
 test('monthly leaderboard can toggle between full standings and group chat', async ({ page }) => {
-  await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
+  const month = monthName(scoreSnapshot.date);
+  await expect(page.getByRole('heading', { name: `${month} leaderboard` })).toBeVisible();
   await expect(page.locator('.monthly-toggle')).toContainText('Full standings');
   await page.getByRole('button', { name: 'Group chat' }).click();
-  await expect(page.getByRole('heading', { name: 'July group chat leaderboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: `${month} group chat leaderboard` })).toBeVisible();
   await expect(page.locator('.monthly-toggle')).toContainText('Group chat');
   await expect(page.getByText(/Excludes|excluding/i)).toHaveCount(0);
   await page.getByRole('button', { name: 'Group chat' }).click();
-  await expect(page.getByRole('heading', { name: 'July leaderboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: `${month} leaderboard` })).toBeVisible();
 });
 
 test('shares the selected day as a group-specific website link', async ({ page }) => {

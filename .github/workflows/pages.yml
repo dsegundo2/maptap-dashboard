@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '17 * * * *'
+    # Moving the schedule also reactivates a GitHub workflow disabled for
+    # repository inactivity; avoid the busiest minute of the hour.
+    - cron: '23 * * * *'
   workflow_dispatch:
 
 permissions:

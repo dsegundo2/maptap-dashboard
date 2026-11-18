@@ -40,4 +40,11 @@ describe('player registry', () => {
     expect(readCache([{ maptapUsername: 'Diego Dad' }, { maptapUsername: 'DiegoT' }])).toBeNull();
     globalThis.localStorage = originalStorage;
   });
+
+  it('rejects a fresh cache from a previous MapTap day', () => {
+    const originalStorage = globalThis.localStorage;
+    globalThis.localStorage = { getItem: () => JSON.stringify({ savedAt: Date.now(), data: { date: '2026-09-16', players: [{ maptapUsername: 'Diego Dad' }] } }) };
+    expect(readCache([{ maptapUsername: 'Diego Dad' }], 'HB', '2026-11-17')).toBeNull();
+    globalThis.localStorage = originalStorage;
+  });
 });

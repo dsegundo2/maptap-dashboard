@@ -3,8 +3,10 @@ import { resolveGroup } from './groups.js';
 
 const PROFILE_ENDPOINT = 'https://us-central1-jjexperiment-12af6.cloudfunctions.net/getPublicProfile';
 const LEADERBOARD_ROOT = 'https://firebasestorage.googleapis.com/v0/b/jjexperiment-12af6.appspot.com/o/data%2Fleaderboards%2F';
-const CACHE_KEY = 'maptap-dashboard-cache-v4';
+const CACHE_KEY = 'maptap-dashboard-cache-v5';
 const CACHE_TTL = 5 * 60 * 1000;
+const PROFILE_CONCURRENCY = 3;
+const PROFILE_STAGGER_MS = 250;
 
 function asset(path) {
   return `${import.meta.env.BASE_URL}${path}`;
@@ -27,6 +29,28 @@ async function profileFor(user) {
   return { config: user, profile: result.user };
 }
 
+async function profilesFor(users) {
+  const profiles = new Array(users.length);
+  let nextIndex = 0;
+  const worker = async (workerIndex) => {
+    if (workerIndex) await new Promise((resolve) => setTimeout(resolve, workerIndex * PROFILE_STAGGER_MS));
+    while (nextIndex < users.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      const user = users[index];
+      try {
+        profiles[index] = await profileFor(user);
+      } catch (error) {
+        console.warn(`Public MapTap profile unavailable for ${user.maptapUsername}; keeping the configured player visible.`, error);
+        profiles[index] = { config: user, profile: null };
+      }
+      if (nextIndex < users.length) await new Promise((resolve) => setTimeout(resolve, PROFILE_STAGGER_MS));
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(PROFILE_CONCURRENCY, users.length) }, (_, index) => worker(index)));
+  return profiles;
+}
+
 export async function fetchLiveDashboard(groupId) {
   const [groupRegistry, config, locationArchive] = await Promise.all([
     jsonFetch(asset('data/groups.json')),
@@ -38,16 +62,7 @@ export async function fetchLiveDashboard(groupId) {
   const today = dateKey(new Date(), config.timezone);
   const leaderboardUrl = `${LEADERBOARD_ROOT}daily-${today}.json?alt=media&v=${Date.now()}`;
   const leaderboardPromise = jsonFetch(leaderboardUrl).then((value) => value.leaderboard);
-  const profiles = [];
-  for (const user of users) {
-    try {
-      profiles.push(await profileFor(user));
-    } catch (error) {
-      console.warn(`Public MapTap profile unavailable for ${user.maptapUsername}; keeping the configured player visible.`, error);
-      profiles.push({ config: user, profile: null });
-    }
-    if (users.length > 1) await new Promise((resolve) => setTimeout(resolve, 650));
-  }
+  const profiles = await profilesFor(users);
   const leaderboard = await leaderboardPromise;
   const players = profiles.map(({ config: user, profile }, index) => {
     if (!profile) {
@@ -136,11 +151,12 @@ function rosterKey(players = []) {
   return players.map((player) => player.maptapUsername).filter(Boolean).toSorted().join('\n');
 }
 
-export function readCache(expectedPlayers, groupId = 'default') {
+export function readCache(expectedPlayers, groupId = 'default', expectedDate) {
   try {
     const cached = JSON.parse(localStorage.getItem(`${CACHE_KEY}:${groupId}`));
     if (!cached?.savedAt || Date.now() - cached.savedAt >= CACHE_TTL) return null;
     if (expectedPlayers && rosterKey(cached.data?.players) !== rosterKey(expectedPlayers)) return null;
+    if (expectedDate && cached.data?.date !== expectedDate) return null;
     return cached.data;
   } catch {
     return null;
