@@ -61,13 +61,13 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .streak-block strong { color: var(--gold); font: 700 42px/1 Georgia, serif; }
 .streak-block span { margin-top: 7px; color: #f6ce69; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .surface { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
-.standings-scope { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; padding: 12px 15px; border-radius: 14px; }
-.standings-scope > span { color: var(--forest); font-size: 12px; font-weight: 850; letter-spacing: .03em; }
-.standings-scope button { position: relative; width: 52px; height: 29px; padding: 0; border: 1px solid #b8c9b8; border-radius: 999px; background: #e7e9de; cursor: pointer; }
-.standings-scope button::after { position: absolute; top: 4px; left: 4px; width: 19px; height: 19px; background: var(--surface); border-radius: 50%; box-shadow: 0 2px 7px rgba(19,35,27,.22); content: ""; transition: transform .18s ease, background .18s ease; }
+.leaderboard { position: relative; margin-top: 14px; padding: 22px 14px 14px; border-radius: var(--radius); }
+.standings-scope { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: -2px 4px 14px; padding: 7px 8px 7px 12px; background: #f1f4ed; border: 1px solid #dbe4d6; border-radius: 12px; }
+.standings-scope > span { color: var(--forest); font-size: 11px; font-weight: 850; letter-spacing: .04em; }
+.standings-scope button { position: relative; width: 46px; height: 26px; padding: 0; border: 1px solid #b8c9b8; border-radius: 999px; background: #dfe5d9; cursor: pointer; }
+.standings-scope button::after { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: var(--surface); border-radius: 50%; box-shadow: 0 2px 5px rgba(19,35,27,.18); content: ""; transition: transform .18s ease, background .18s ease; }
 .standings-scope button[aria-checked="true"] { background: var(--pine, var(--forest)); border-color: var(--forest); }
-.standings-scope button[aria-checked="true"]::after { background: #fffdf8; transform: translateX(23px); }
-.leaderboard { position: relative; margin-top: -1px; padding: 22px 14px 14px; border-radius: 0 0 var(--radius) var(--radius); }
+.standings-scope button[aria-checked="true"]::after { background: #fffdf8; transform: translateX(18px); }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 4px 14px; }
 .section-heading h2 { margin: 0; font: 700 18px/1.2 Georgia, serif; letter-spacing: -.02em; }
 .section-heading p { margin: 4px 0 0; color: var(--ink-soft); font-size: 12px; }

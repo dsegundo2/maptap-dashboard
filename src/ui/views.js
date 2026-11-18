@@ -198,10 +198,9 @@ export function todayView(data, options = {}) {
       </${leader ? 'button' : 'div'}>
     </section>
 
-    ${canLimitStandings ? `<section class="standings-scope surface" aria-label="Leaderboard scope"><span>Full standings</span><button type="button" role="switch" data-action="toggle-full-standings" aria-label="Full standings" aria-checked="${fullStandings}"></button></section>` : ''}
-
     <section class="surface leaderboard" aria-labelledby="leaderboard-title">
       <div class="section-heading"><div><h2 id="leaderboard-title">${isToday ? 'Today’s leaderboard' : 'Daily leaderboard'}</h2><p>${visiblePlayers.length} players${standingsLoading ? ' · checking global standings…' : ''}</p></div><button class="text-action" type="button" data-action="share">${icon('share', 18)} Share</button></div>
+      ${canLimitStandings ? `<div class="standings-scope" aria-label="Leaderboard scope"><span>Full standings</span><button type="button" role="switch" data-action="toggle-full-standings" aria-label="Full standings" aria-checked="${fullStandings}"></button></div>` : ''}
       <div class="date-toolbar" aria-label="Leaderboard date controls">
         <button type="button" data-action="previous-day" aria-label="Previous day" ${data.date <= minimumDate ? 'disabled' : ''}>${icon('chevron-left', 18)}</button>
         <button class="date-picker-trigger" type="button" data-action="open-calendar" aria-label="Choose leaderboard date">${icon('calendar', 16)}<span>${formatDate(data.date, { year: undefined })}</span></button>

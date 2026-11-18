@@ -75,6 +75,10 @@ test('mobile leaderboard has no horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.app-header')).toHaveCSS('position', 'relative');
   await expect(page.locator('.bottom-nav')).toHaveCSS('position', 'fixed');
+  await expect(page.locator('.leaderboard .standings-scope')).toBeVisible();
+  await expect(page.locator('.today-view > .standings-scope')).toHaveCount(0);
+  const scopeFits = await page.locator('.leaderboard .standings-scope').evaluate((element) => element.getBoundingClientRect().right <= window.innerWidth);
+  expect(scopeFits).toBe(true);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
 });
