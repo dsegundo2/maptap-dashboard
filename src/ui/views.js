@@ -95,12 +95,10 @@ function playerSummary(data, spotlightId) {
   </section>`;
 }
 
-function monthlyBoard(data, className = '', scope = 'full') {
-  const canToggle = data.players.some((player) => player.excludedFromChatWins === true);
-  const isGroupChat = scope === 'group-chat' && canToggle;
-  const monthly = monthlyLeaderboard(data, data.date, isGroupChat ? { playerFilter: (player) => player.excludedFromChatWins !== true } : {});
+function monthlyBoard(data, className = '') {
+  const monthly = monthlyLeaderboard(data, data.date);
   return `<section class="monthly-leaderboard ${className}" aria-labelledby="monthly-leaderboard-title">
-    <header><div><h2 id="monthly-leaderboard-title">${monthly.label}${isGroupChat ? ' group chat' : ''} leaderboard</h2><p>Ranked by total wins</p></div>${canToggle ? `<div class="monthly-toggle" aria-label="Monthly leaderboard scope"><span>${isGroupChat ? 'Group chat' : 'Full standings'}</span><button type="button" data-action="toggle-monthly-scope" aria-pressed="${isGroupChat}">Group chat</button></div>` : '<span>Full standings</span>'}</header>
+    <header><div><h2 id="monthly-leaderboard-title">${monthly.label} leaderboard</h2><p>Ranked by total wins</p></div></header>
     <div class="monthly-ranks">${monthly.players.map((entry) => `<button class="monthly-rank-row rank-${entry.rank}" type="button" data-player="${escapeHtml(entry.id)}" aria-label="Select ${escapeHtml(entry.displayName)} on the Players tab, ranked ${entry.rank}">
       ${rankMedal(entry.rank - 1)}
       <span class="monthly-player"><strong>${escapeHtml(entry.displayName)}</strong><small>${entry.gamesPlayed} ${entry.gamesPlayed === 1 ? 'game' : 'games'} · ${formatScore(entry.average)} avg</small></span>
@@ -176,10 +174,15 @@ export function teamView(data) {
 }
 
 export function todayView(data, options = {}) {
-  const { minimumDate, maximumDate, calendarOpen, standingsLoading, monthlyScope = 'full' } = options;
+  const { minimumDate, maximumDate, calendarOpen, standingsLoading, fullStandings = false } = options;
+  const canLimitStandings = data.players.some((player) => player.excludedFromChatWins === true);
+  const visiblePlayers = fullStandings || !canLimitStandings
+    ? data.players
+    : data.players.filter((player) => player.excludedFromChatWins !== true);
+  const scopedData = { ...data, players: visiblePlayers };
   const isToday = data.date === maximumDate;
-  const leader = data.players.find((player) => player.playedToday);
-  const notPlayed = data.players.filter((player) => !player.playedToday).length;
+  const leader = visiblePlayers.find((player) => player.playedToday);
+  const notPlayed = visiblePlayers.filter((player) => !player.playedToday).length;
   return `<div class="view today-view" data-view="today">
     <section class="winner-hero ${leader ? '' : 'is-empty'}" aria-label="Daily winner">
       <div class="mountain-scene" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -189,8 +192,10 @@ export function todayView(data, options = {}) {
       </${leader ? 'button' : 'div'}>
     </section>
 
+    ${canLimitStandings ? `<section class="standings-scope surface" aria-label="Leaderboard scope"><span>Full standings</span><button type="button" role="switch" data-action="toggle-full-standings" aria-label="Full standings" aria-checked="${fullStandings}"></button></section>` : ''}
+
     <section class="surface leaderboard" aria-labelledby="leaderboard-title">
-      <div class="section-heading"><div><h2 id="leaderboard-title">${isToday ? 'Today’s leaderboard' : 'Daily leaderboard'}</h2><p>${data.players.length} players${standingsLoading ? ' · checking global standings…' : ''}</p></div><button class="text-action" type="button" data-action="share">${icon('share', 18)} Share</button></div>
+      <div class="section-heading"><div><h2 id="leaderboard-title">${isToday ? 'Today’s leaderboard' : 'Daily leaderboard'}</h2><p>${visiblePlayers.length} players${standingsLoading ? ' · checking global standings…' : ''}</p></div><button class="text-action" type="button" data-action="share">${icon('share', 18)} Share</button></div>
       <div class="date-toolbar" aria-label="Leaderboard date controls">
         <button type="button" data-action="previous-day" aria-label="Previous day" ${data.date <= minimumDate ? 'disabled' : ''}>${icon('chevron-left', 18)}</button>
         <button class="date-picker-trigger" type="button" data-action="open-calendar" aria-label="Choose leaderboard date">${icon('calendar', 16)}<span>${formatDate(data.date, { year: undefined })}</span></button>
@@ -198,13 +203,13 @@ export function todayView(data, options = {}) {
         <button class="today-shortcut" type="button" data-action="jump-today" aria-label="Jump to today" ${isToday ? 'disabled' : ''}>Today</button>
       </div>
       <div class="leader-labels" aria-hidden="true"><span>Rank</span><span>Player</span><span>Score</span><span>Percentile</span></div>
-      <div class="leader-list">${data.players.map(playerRow).join('')}</div>
-      <p class="list-note"><span class="status-dot"></span>${data.players.length - notPlayed} played ${isToday ? 'today' : 'on this day'} <span>·</span> ${notPlayed} ${isToday ? 'still exploring' : 'did not play'}</p>
+      <div class="leader-list">${visiblePlayers.map(playerRow).join('')}</div>
+      <p class="list-note"><span class="status-dot"></span>${visiblePlayers.length - notPlayed} played ${isToday ? 'today' : 'on this day'} <span>·</span> ${notPlayed} ${isToday ? 'still exploring' : 'did not play'}</p>
     </section>
 
     ${isToday ? '' : locationTrail(data.date, data.locationsByDate?.[data.date]?.locations)}
 
-    ${monthlyBoard(data, 'monthly-home', monthlyScope)}
+    ${monthlyBoard(scopedData, 'monthly-home')}
     ${calendarOpen ? calendarPicker(minimumDate, maximumDate, data.date) : ''}
   </div>`;
 }

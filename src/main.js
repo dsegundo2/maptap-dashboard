@@ -18,7 +18,7 @@ const state = {
   calendarOpen: false,
   standingsByDate: {},
   standingsLoading: false,
-  monthlyScope: 'full',
+  fullStandings: false,
   loading: true,
   refreshing: false,
   source: 'snapshot',
@@ -63,7 +63,7 @@ function render() {
       maximumDate: dateRange.maximum,
       calendarOpen: state.calendarOpen,
       standingsLoading: state.standingsLoading,
-      monthlyScope: state.monthlyScope
+      fullStandings: state.fullStandings
     }),
     players: () => playersView(state.data, state.spotlightPlayer),
     team: () => teamView(state.data)
@@ -205,8 +205,8 @@ app.addEventListener('click', (event) => {
   if (action === 'previous-day') selectDate(addDays(state.selectedDate, -1));
   if (action === 'next-day') selectDate(addDays(state.selectedDate, 1));
   if (action === 'jump-today') selectDate(state.data.date);
-  if (action === 'toggle-monthly-scope') {
-    state.monthlyScope = state.monthlyScope === 'group-chat' ? 'full' : 'group-chat';
+  if (action === 'toggle-full-standings') {
+    state.fullStandings = !state.fullStandings;
     render();
     return;
   }

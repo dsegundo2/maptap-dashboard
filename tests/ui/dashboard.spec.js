@@ -117,10 +117,11 @@ test('calendar selects the rolling lower bound with one completed score', async 
   await page.getByRole('button', { name: 'Choose leaderboard date' }).click();
   await expect(page.getByRole('dialog', { name: 'Choose a day' })).toBeVisible();
   await page.getByRole('button', { name: minimumLabel }).click();
-  const scoredPlayers = playerRegistry.filter((player) => Number.isFinite(scoreOn(player, minimumDate)));
+  const visiblePlayers = playerRegistry.filter((player) => !player.excludedFromChatWins);
+  const scoredPlayers = visiblePlayers.filter((player) => Number.isFinite(scoreOn(player, minimumDate)));
   const leader = scoredPlayers.toSorted((a, b) => scoreOn(b, minimumDate) - scoreOn(a, minimumDate))[0];
   await expect(page.getByRole('heading', { name: leader.displayName, exact: true })).toBeVisible();
-  for (const player of playerRegistry) {
+  for (const player of visiblePlayers) {
     const score = scoreOn(player, minimumDate);
     await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toContainText(Number.isFinite(score) ? score.toLocaleString() : '—');
   }
@@ -217,7 +218,7 @@ test('every configured group URL loads its configured roster', async ({ page }) 
   for (const group of configuredGroups) {
     await page.goto(`${routeBase}/${group.id}`);
     await expect(page.locator('.brand')).toContainText(group.name);
-    for (const player of group.players) {
+    for (const player of group.players.filter((player) => !player.excludedFromChatWins)) {
       await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toBeVisible();
     }
   }
@@ -257,15 +258,24 @@ test('team tab shows chat group averages, continent splits, locations, and strea
   expect(overflow).toBe(false);
 });
 
-test('monthly leaderboard can toggle between full standings and group chat', async ({ page }) => {
+test('full standings starts off and scopes both daily and monthly leaderboards', async ({ page }) => {
   const month = monthName(scoreSnapshot.date);
   await expect(page.getByRole('heading', { name: `${month} leaderboard` })).toBeVisible();
-  await expect(page.locator('.monthly-toggle')).toContainText('Full standings');
-  await page.getByRole('button', { name: 'Group chat' }).click();
-  await expect(page.getByRole('heading', { name: `${month} group chat leaderboard` })).toBeVisible();
-  await expect(page.locator('.monthly-toggle')).toContainText('Group chat');
-  await expect(page.getByText(/Excludes|excluding/i)).toHaveCount(0);
-  await page.getByRole('button', { name: 'Group chat' }).click();
+  const excludedPlayers = playerRegistry.filter((player) => player.excludedFromChatWins);
+  const fullStandings = page.getByRole('switch', { name: 'Full standings' });
+  await expect(fullStandings).toHaveAttribute('aria-checked', 'false');
+  expect(await page.locator('.leader-list [data-player]').count()).toBe(playerRegistry.length - excludedPlayers.length);
+  for (const player of excludedPlayers) {
+    await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toHaveCount(0);
+    await expect(page.locator('.monthly-ranks').getByRole('button', { name: new RegExp(`Select ${player.displayName}`) })).toHaveCount(0);
+  }
+  await fullStandings.click();
+  await expect(fullStandings).toHaveAttribute('aria-checked', 'true');
+  expect(await page.locator('.leader-list [data-player]').count()).toBe(playerRegistry.length);
+  for (const player of excludedPlayers) {
+    await expect(page.locator('.leader-list').getByRole('button', { name: `Select ${player.displayName} on the Players tab`, exact: true })).toBeVisible();
+    await expect(page.locator('.monthly-ranks').getByRole('button', { name: new RegExp(`Select ${player.displayName}`) })).toBeVisible();
+  }
   await expect(page.getByRole('heading', { name: `${month} leaderboard` })).toBeVisible();
 });
 
