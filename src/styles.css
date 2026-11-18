@@ -44,14 +44,14 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e4a50c; outline-offs
 .loading-state span { color: var(--ink-soft); font-size: 14px; }
 .loader { width: 34px; height: 34px; margin-bottom: 8px; border: 3px solid var(--sage); border-top-color: var(--forest); border-radius: 50%; animation: spin .8s linear infinite; }
 .view { min-width: 0; }
-.winner-hero { position: relative; min-height: 270px; margin: 0 -18px 0; overflow: hidden; background: linear-gradient(#e5eadc, #9eb59c 50%, #305b3e 50%, #183e2d); }
-.mountain-scene { position: absolute; inset: 0; overflow: hidden; }
-.mountain-scene::before, .mountain-scene::after, .mountain-scene span { position: absolute; content: ""; transform: rotate(45deg); border-radius: 24px 0 0; }
-.mountain-scene::before { width: 190px; height: 190px; left: -35px; top: 35px; background: #bacab2; }
-.mountain-scene::after { width: 230px; height: 230px; left: 35%; top: 52px; background: #9eb69e; opacity: .9; }
-.mountain-scene span:nth-child(1) { width: 120px; height: 120px; right: -25px; top: 84px; background: #cad5c3; }
-.mountain-scene span:nth-child(2) { left: 10%; right: 10%; bottom: 35px; height: 55px; transform: none; background: repeating-linear-gradient(115deg, transparent 0 20px, #234b34 21px 31px, transparent 32px 49px); opacity: .9; }
-.winner-panel { position: absolute; z-index: 2; left: 18px; right: 18px; bottom: 18px; display: flex; align-items: center; justify-content: space-between; width: calc(100% - 36px); min-height: 148px; padding: 24px; color: white; background: linear-gradient(120deg, rgba(8, 55, 35, .96), rgba(8, 45, 31, .93)); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; box-shadow: 0 20px 35px rgba(6, 35, 23, .25); text-align: left; }
+.winner-hero { position: relative; isolation: isolate; min-height: 270px; margin: 0 -18px 0; overflow: hidden; background: linear-gradient(180deg, #e9eee2 0%, #c7d6c1 49%, #3f6a4d 50%, #183e2d 100%); }
+.mountain-scene { position: absolute; z-index: 0; inset: 0; overflow: hidden; background: linear-gradient(180deg, transparent 0 48%, rgba(13, 66, 46, .18) 49% 100%); }
+.mountain-scene::before, .mountain-scene::after, .mountain-scene span { position: absolute; bottom: 40%; display: block; content: ""; clip-path: polygon(50% 0, 100% 100%, 0 100%); pointer-events: none; }
+.mountain-scene::before { width: min(42vw, 440px); height: 220px; left: -8%; background: #b5c7b0; }
+.mountain-scene::after { width: min(44vw, 470px); height: 210px; left: 31%; background: #91ae94; opacity: .92; }
+.mountain-scene span:nth-child(1) { width: min(28vw, 310px); height: 155px; right: -5%; background: #c7d5c1; }
+.mountain-scene span:nth-child(2) { right: 0; bottom: 0; left: 0; height: 52%; clip-path: none; background: linear-gradient(180deg, rgba(35, 75, 52, .18), #214b34 72%, #173b2a); }
+.winner-panel { position: absolute; z-index: 2; left: 18px; right: 18px; bottom: 18px; display: flex; align-items: center; justify-content: space-between; width: calc(100% - 36px); min-height: 148px; padding: 24px; color: white; background: linear-gradient(120deg, #0d432f, #082e21); border: 1px solid rgba(255,255,255,.24); border-radius: 20px; box-shadow: 0 20px 35px rgba(6, 35, 23, .25); text-align: left; }
 .winner-panel:is(button) { cursor: pointer; transition: transform .18s ease, border-color .18s ease; }.winner-panel:is(button):hover { border-color: rgba(244,188,53,.65); transform: translateY(-2px); }
 .hero-label { display: flex; align-items: center; gap: 7px; margin: 0 0 10px; color: #e6eadf; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .hero-label svg { color: var(--gold); }

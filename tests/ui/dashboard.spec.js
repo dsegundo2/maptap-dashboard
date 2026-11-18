@@ -98,6 +98,27 @@ test('desktop uses a persistent side rail instead of mobile app navigation', asy
     return { navigationRight: navigation.right, contentLeft: content.left };
   });
   expect(layout.navigationRight).toBeLessThan(layout.contentLeft);
+  const hero = page.locator('.winner-hero');
+  const heroPanel = page.locator('.winner-panel');
+  await expect(hero).toBeVisible();
+  await expect(heroPanel).toBeVisible();
+  await expect(hero.locator('.mountain-scene')).toHaveCSS('z-index', '0');
+  const heroGeometry = await page.evaluate(() => {
+    const heroBounds = document.querySelector('.winner-hero').getBoundingClientRect();
+    const panelBounds = document.querySelector('.winner-panel').getBoundingClientRect();
+    const scene = document.querySelector('.mountain-scene');
+    return {
+      heroWidth: heroBounds.width,
+      panelWidth: panelBounds.width,
+      panelBackground: getComputedStyle(document.querySelector('.winner-panel')).backgroundImage,
+      sceneTransform: getComputedStyle(scene, '::before').transform,
+      sceneClip: getComputedStyle(scene, '::before').clipPath
+    };
+  });
+  expect(heroGeometry.panelWidth).toBeLessThan(heroGeometry.heroWidth);
+  expect(heroGeometry.panelBackground).not.toBe('none');
+  expect(heroGeometry.sceneTransform).toBe('none');
+  expect(heroGeometry.sceneClip).toContain('polygon');
 });
 
 test('navigates previous and next leaderboard days', async ({ page }) => {
