@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.12" },
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "data:refresh": "node scripts/fetch-data.mjs && node scripts/fetch-locations.mjs",
