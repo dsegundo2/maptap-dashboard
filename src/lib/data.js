@@ -3,7 +3,7 @@ import { resolveGroup } from './groups.js';
 
 const PROFILE_ENDPOINT = 'https://us-central1-jjexperiment-12af6.cloudfunctions.net/getPublicProfile';
 const LEADERBOARD_ROOT = 'https://firebasestorage.googleapis.com/v0/b/jjexperiment-12af6.appspot.com/o/data%2Fleaderboards%2F';
-const CACHE_KEY = 'maptap-dashboard-cache-v5';
+const CACHE_KEY = 'maptap-dashboard-cache-v6';
 const CACHE_TTL = 5 * 60 * 1000;
 const PROFILE_CONCURRENCY = 3;
 const PROFILE_STAGGER_MS = 250;
@@ -13,7 +13,9 @@ function asset(path) {
 }
 
 async function jsonFetch(url, options = {}) {
-  const response = await fetch(url, { ...options, signal: AbortSignal.timeout(12_000) });
+  // These files are regenerated on every Pages refresh. Never let a browser
+  // keep an old roster, score snapshot, or location archive after a deploy.
+  const response = await fetch(url, { cache: 'no-store', ...options, signal: AbortSignal.timeout(12_000) });
   if (!response.ok) throw new Error(`Request failed (${response.status})`);
   return response.json();
 }
