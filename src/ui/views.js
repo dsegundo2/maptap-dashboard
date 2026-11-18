@@ -1,7 +1,7 @@
 import { icon } from './icons.js';
 import { escapeHtml, formatDate, formatScore } from './format.js';
 import { sparkline } from './charts.js';
-import { monthlyLeaderboard, playerContinentStats, teamStats } from '../lib/stats.js';
+import { addDays, monthlyLeaderboard, playerContinentStats, teamStats } from '../lib/stats.js';
 import { projectLocation, WORLD_LAND_PATH } from './world-map.js';
 
 function rankMedal(index) {
@@ -227,6 +227,34 @@ function playerCard(player, selected) {
   </button>`;
 }
 
+function lastDateOfMonth(month) {
+  const nextMonth = new Date(`${month}-01T12:00:00Z`);
+  nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1);
+  return addDays(nextMonth.toISOString().slice(0, 10), -1);
+}
+
+function completedMonthlyBoards(data, startMonth = '2026-07') {
+  const currentMonth = data.date.slice(0, 7);
+  const lastCompleteMonth = addDays(`${currentMonth}-01`, -1).slice(0, 7);
+  const months = [];
+  for (let month = startMonth; month <= lastCompleteMonth;) {
+    months.push(month);
+    const next = new Date(`${month}-01T12:00:00Z`);
+    next.setUTCMonth(next.getUTCMonth() + 1);
+    month = next.toISOString().slice(0, 7);
+  }
+  return months.map((month) => monthlyLeaderboard(data, lastDateOfMonth(month)));
+}
+
+function monthlyArchive(data) {
+  const boards = completedMonthlyBoards(data);
+  if (!boards.length) return '';
+  return `<section class="monthly-archive" aria-labelledby="monthly-archive-title">
+    <header class="monthly-archive-heading"><div><p>Hall of champions</p><h2 id="monthly-archive-title">Monthly archive</h2></div><span>${boards[0].month.slice(0, 4)}</span></header>
+    <div class="monthly-archive-grid">${boards.map((board) => `<article class="monthly-archive-card"><h3>${board.label}</h3><ol>${board.players.slice(0, 3).map((player) => `<li><span class="rank ${['gold', 'silver', 'bronze'][Math.min(player.rank - 1, 2)] || ''}">${player.rank}</span><strong>${escapeHtml(player.displayName)}</strong><small>${player.wins} ${player.wins === 1 ? 'Win' : 'Wins'}</small></li>`).join('')}</ol></article>`).join('')}</div>
+  </section>`;
+}
+
 export function playersView(data, selectedId, options = {}) {
   const playerList = data.players.toSorted((a, b) => (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER));
   const leader = data.players.find((player) => player.playedToday);
@@ -235,5 +263,6 @@ export function playersView(data, selectedId, options = {}) {
     <header class="players-heading"><div><h1>Players</h1><p>${data.players.length} total</p></div></header>
     <section class="player-list" aria-label="Players">${playerList.map((player) => playerCard(player, player.id === selected?.id)).join('')}</section>
     ${playerSummary(data, selected?.id)}
+    ${monthlyArchive(data)}
   </div>`;
 }

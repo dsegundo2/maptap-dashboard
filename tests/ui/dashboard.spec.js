@@ -65,6 +65,11 @@ test('players view shows player summaries instead of the monthly leaderboard', a
   await expect(page.locator('.player-card .avatar').first()).toHaveText('DD');
   await expect(page.getByRole('button', { name: new RegExp(playerRegistry[0].displayName) })).toBeVisible();
   await expect(page.locator('.monthly-rank-row')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Monthly archive' })).toBeVisible();
+  await expect(page.locator('.monthly-archive-card')).not.toHaveCount(0);
+  await expect(page.locator('.monthly-archive-card small').first()).toHaveText(/Wins?$/);
+  await expect(page.getByText('View standings')).toHaveCount(0);
+  await expect(page.getByText('Full standings')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Trends' })).toHaveCount(0);
   const mapTapLink = page.getByRole('link', { name: 'Play on MapTap.gg (opens in new window)' });
   await expect(mapTapLink).toHaveAttribute('href', 'https://maptap.gg');
