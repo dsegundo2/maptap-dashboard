@@ -24,7 +24,8 @@ const state = {
   source: 'snapshot',
   message: '',
   fallbackData: null,
-  requestedDate: null
+  requestedDate: null,
+  archivePage: 0
 };
 
 function shell(content = '') {
@@ -65,7 +66,7 @@ function render() {
       standingsLoading: state.standingsLoading,
       fullStandings: state.fullStandings
     }),
-    players: () => playersView(state.data, state.spotlightPlayer),
+    players: () => playersView(state.data, state.spotlightPlayer, { archivePage: state.archivePage }),
     team: () => teamView(state.data)
   };
   app.innerHTML = shell(views[state.view]());
@@ -208,6 +209,12 @@ app.addEventListener('click', (event) => {
   if (action === 'toggle-full-standings') {
     state.fullStandings = !state.fullStandings;
     render();
+    return;
+  }
+  if (action === 'newer-archive-months' || action === 'older-archive-months') {
+    state.archivePage = Math.max(0, state.archivePage + (action === 'older-archive-months' ? 1 : -1));
+    render();
+    window.requestAnimationFrame(() => document.querySelector('.monthly-archive')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     return;
   }
   if (action === 'open-calendar') {

@@ -76,6 +76,37 @@ test('players view shows player summaries instead of the monthly leaderboard', a
   await expect(mapTapLink).toHaveAttribute('target', '_blank');
 });
 
+test('monthly archive starts with recent months and paginates older history', async ({ page }) => {
+  const archiveMonths = ['2026-07', '2026-08', '2026-09', '2026-10', '2026-11', '2026-12', '2027-01', '2027-02', '2027-03'];
+  const players = ['Avery', 'Blair', 'Casey'].map((displayName, playerIndex) => ({
+    id: displayName.toLowerCase(),
+    maptapUsername: displayName,
+    displayName,
+    score: 900 - playerIndex,
+    playedToday: true,
+    history: archiveMonths.map((month, monthIndex) => ({
+      date: `${month}-02`,
+      score: 800 + ((monthIndex + playerIndex) % 3) * 10
+    }))
+  }));
+  await page.route('**/data/scores.json', (route) => route.fulfill({ json: { generatedAt: new Date().toISOString(), date: '2027-04-02', globalPlayers: 1000, players } }));
+  await page.route('**/data/groups.json', (route) => route.fulfill({ json: { defaultGroup: 'HB', groups: { HB: { name: 'HB', players: players.map(({ maptapUsername, displayName }) => ({ maptapUsername, displayName, enabled: true })) } } } }));
+  await page.goto('/?archive-pagination-test=1');
+  await page.getByRole('button', { name: 'Players', exact: true }).click();
+  const archive = page.locator('.monthly-archive');
+  await expect(archive).toContainText('Newest months first');
+  await expect(archive.locator('.monthly-archive-card h3')).toHaveText(['March', 'February', 'January', 'December', 'November', 'October']);
+  await expect(archive.getByRole('button', { name: 'Newer', exact: true })).toBeDisabled();
+  await expect(archive.getByRole('button', { name: 'Older', exact: true })).toBeEnabled();
+  await archive.getByRole('button', { name: 'Older', exact: true }).click();
+  await expect(archive).toHaveAttribute('data-archive-page', '1');
+  await expect(archive.locator('.monthly-archive-card h3')).toHaveText(['September', 'August', 'July']);
+  await expect(archive.getByRole('button', { name: 'Newer', exact: true })).toBeEnabled();
+  await expect(archive.getByRole('button', { name: 'Older', exact: true })).toBeDisabled();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  expect(overflow).toBe(false);
+});
+
 test('mobile leaderboard has no horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.app-header')).toHaveCSS('position', 'relative');
